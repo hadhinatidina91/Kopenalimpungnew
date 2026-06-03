@@ -1,0 +1,1016 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>KOPENA Limpung – Manajemen Pembiayaan</title>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+/* ══════════════════════════════════════════════
+   ROOT VARIABLES
+══════════════════════════════════════════════ */
+:root {
+  --bg:      #0b0f14;
+  --s1:      #121920;
+  --s2:      #192030;
+  --s3:      #243040;
+  --border:  #2a3a50;
+  --green:   #22c55e;
+  --gdim:    rgba(34,197,94,.12);
+  --red:     #ef4444;
+  --rdim:    rgba(239,68,68,.1);
+  --blue:    #3b82f6;
+  --bdim:    rgba(59,130,246,.1);
+  --yellow:  #f59e0b;
+  --ydim:    rgba(245,158,11,.1);
+  --purple:  #a78bfa;
+  --text:    #e2eaf4;
+  --text2:   #7a99be;
+  --text3:   #3d5570;
+  --r:       10px;
+  --rs:      6px;
+  --shadow:  0 8px 32px rgba(0,0,0,.5);
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{
+  font-family:"Plus Jakarta Sans",sans-serif;
+  background:var(--bg);color:var(--text);
+  min-height:100vh;
+  background-image:
+    radial-gradient(ellipse 70% 35% at 5% 0%,rgba(34,197,94,.06) 0%,transparent 60%),
+    radial-gradient(ellipse 50% 25% at 95% 100%,rgba(59,130,246,.06) 0%,transparent 60%);
+}
+
+/* ── Scrollbar ── */
+::-webkit-scrollbar{width:4px;height:4px;}
+::-webkit-scrollbar-track{background:var(--s1);}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px;}
+
+/* ══════════════════════════════════════════════
+   HEADER
+══════════════════════════════════════════════ */
+header{
+  padding:14px 20px;border-bottom:1px solid var(--border);
+  display:flex;align-items:center;justify-content:space-between;gap:12px;
+  position:sticky;top:0;z-index:300;
+  background:rgba(11,15,20,.96);backdrop-filter:blur(14px);
+}
+.brand{display:flex;align-items:center;gap:10px;flex-shrink:0;}
+.brand-icon{
+  width:36px;height:36px;border-radius:9px;
+  display:flex;align-items:center;justify-content:center;font-size:18px;
+  background:linear-gradient(135deg,var(--green),#15803d);
+}
+.brand h1{font-size:14px;font-weight:800;line-height:1.2;}
+.brand p{font-size:10px;color:var(--text2);}
+.hdr-right{display:flex;align-items:center;gap:8px;}
+.clock{
+  font-family:"JetBrains Mono",monospace;font-size:11px;color:var(--green);
+  background:rgba(34,197,94,.1);border:1px solid rgba(34,197,94,.2);
+  padding:5px 10px;border-radius:16px;white-space:nowrap;
+}
+
+/* ══════════════════════════════════════════════
+   MAIN NAV TABS
+══════════════════════════════════════════════ */
+.nav{
+  display:flex;background:var(--s1);
+  border-bottom:1px solid var(--border);overflow-x:auto;
+}
+.nav-tab{
+  padding:13px 18px;font-size:13px;font-weight:600;cursor:pointer;
+  color:var(--text2);border-bottom:2px solid transparent;
+  white-space:nowrap;transition:all .2s;user-select:none;
+  display:flex;align-items:center;gap:6px;
+}
+.nav-tab:hover{color:var(--text);}
+.nav-tab.active{color:var(--green);border-bottom-color:var(--green);}
+
+/* ══════════════════════════════════════════════
+   LAYOUT
+══════════════════════════════════════════════ */
+main{max-width:1080px;margin:0 auto;padding:20px 14px 80px;}
+.view{display:none;}
+.view.active{display:block;}
+
+/* ══════════════════════════════════════════════
+   STATS GRID
+══════════════════════════════════════════════ */
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:18px;}
+.stat{
+  background:var(--s1);border:1px solid var(--border);
+  border-radius:var(--r);padding:14px 16px;
+}
+.stat-num{font-size:24px;font-weight:800;line-height:1;}
+.stat-lbl{font-size:10px;color:var(--text2);margin-top:3px;font-weight:500;}
+.stat.g .stat-num{color:var(--green);}
+.stat.r .stat-num{color:var(--red);}
+.stat.b .stat-num{color:var(--blue);}
+.stat.y .stat-num{color:var(--yellow);}
+.stat.p .stat-num{color:var(--purple);}
+
+/* ══════════════════════════════════════════════
+   TOOLBAR
+══════════════════════════════════════════════ */
+.toolbar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:14px;}
+.toolbar select,.toolbar input[type=text],.toolbar input[type=date],.toolbar input[type=time]{
+  background:var(--s2);border:1px solid var(--border);color:var(--text);
+  font-family:inherit;font-size:13px;padding:8px 12px;border-radius:var(--rs);outline:none;
+  transition:border-color .2s;
+}
+.toolbar select:focus,.toolbar input:focus{border-color:var(--blue);}
+.spacer{flex:1;}
+.search-wrap{position:relative;min-width:160px;max-width:260px;flex:1;}
+.search-wrap input{width:100%;padding-left:32px;}
+.search-icon{position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--text3);pointer-events:none;}
+
+.fbtn{
+  padding:8px 14px;border-radius:20px;font-size:12px;font-weight:600;
+  cursor:pointer;border:1px solid var(--border);background:var(--s2);
+  color:var(--text2);transition:all .2s;font-family:inherit;white-space:nowrap;
+}
+.fbtn.active{background:var(--green);color:#000;border-color:var(--green);}
+.fbtn:hover:not(.active){background:var(--s3);color:var(--text);}
+
+/* ══════════════════════════════════════════════
+   PROGRESS BAR
+══════════════════════════════════════════════ */
+.prog-card{
+  background:var(--s1);border:1px solid var(--border);
+  border-radius:var(--r);padding:14px 16px;margin-bottom:16px;
+}
+.prog-label{display:flex;justify-content:space-between;font-size:12px;color:var(--text2);margin-bottom:8px;}
+.prog-bar{height:8px;background:var(--s3);border-radius:4px;overflow:hidden;}
+.prog-fill{height:100%;background:linear-gradient(90deg,var(--green),#16a34a);border-radius:4px;transition:width .5s ease;}
+
+/* ══════════════════════════════════════════════
+   TABLE
+══════════════════════════════════════════════ */
+.tbl-card{background:var(--s1);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;}
+.tbl-head{
+  display:grid;grid-template-columns:40px 1fr 130px 120px 70px 100px;
+  padding:10px 14px;border-bottom:1px solid var(--border);
+  font-size:10px;font-weight:700;text-transform:uppercase;
+  letter-spacing:1px;color:var(--text3);background:var(--s2);
+}
+.tbl-body{max-height:55vh;overflow-y:auto;}
+.row{
+  display:grid;grid-template-columns:40px 1fr 130px 120px 70px 100px;
+  padding:9px 14px;border-bottom:1px solid rgba(42,58,80,.4);
+  align-items:center;transition:background .15s;
+}
+.row:last-child{border-bottom:none;}
+.row:hover{background:rgba(255,255,255,.025);}
+.row.lunas{background:rgba(34,197,94,.05);}
+.row.lunas .nama{color:var(--green);}
+
+.no-c{font-size:10px;color:var(--text3);font-family:"JetBrains Mono",monospace;}
+.nama{font-size:13px;font-weight:600;transition:color .2s;}
+.norek{font-size:10px;color:var(--text3);font-family:"JetBrains Mono",monospace;margin-top:1px;}
+.jt{font-size:11px;color:var(--text2);}
+.jt.past{color:var(--red);}
+.out{font-size:11px;color:var(--text2);}
+.status-ic{font-size:15px;text-align:center;}
+
+.tbtn{
+  padding:5px 10px;border-radius:16px;font-size:11px;font-weight:700;
+  cursor:pointer;border:1px solid;transition:all .2s;font-family:inherit;white-space:nowrap;
+}
+.tbtn.belum{background:var(--rdim);color:var(--red);border-color:rgba(239,68,68,.3);}
+.tbtn.belum:hover{background:rgba(239,68,68,.2);}
+.tbtn.lunas{background:var(--gdim);color:var(--green);border-color:rgba(34,197,94,.3);}
+.tbtn.lunas:hover{background:rgba(34,197,94,.2);}
+
+/* ══════════════════════════════════════════════
+   WEEK SECTIONS
+══════════════════════════════════════════════ */
+.week-section{margin-bottom:14px;}
+.week-hdr{
+  padding:9px 14px;background:var(--s2);border:1px solid var(--border);
+  border-bottom:none;border-radius:var(--r) var(--r) 0 0;
+  display:flex;align-items:center;justify-content:space-between;
+  font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--text2);
+}
+.week-hdr .ws{font-size:11px;display:flex;gap:10px;}
+
+/* ══════════════════════════════════════════════
+   REMINDER – FORM CARD
+══════════════════════════════════════════════ */
+.form-card{
+  background:var(--s1);border:1px solid var(--border);
+  border-radius:var(--r);padding:20px;margin-bottom:18px;
+  box-shadow:var(--shadow);
+}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;}
+.form-full{grid-column:1/-1;}
+label{display:block;font-size:10px;font-weight:700;color:var(--text2);
+  text-transform:uppercase;letter-spacing:.8px;margin-bottom:5px;}
+input[type=text],input[type=date],input[type=time],textarea,select{
+  width:100%;background:var(--s2);border:1px solid var(--border);
+  border-radius:var(--rs);color:var(--text);font-family:inherit;
+  font-size:13px;padding:9px 12px;outline:none;
+  transition:border-color .2s,box-shadow .2s;resize:vertical;
+}
+input:focus,textarea:focus,select:focus{
+  border-color:var(--blue);box-shadow:0 0 0 3px rgba(59,130,246,.15);
+}
+textarea{min-height:80px;}
+select option{background:var(--s2);}
+.form-actions{display:flex;gap:8px;justify-content:flex-end;}
+
+/* ══════════════════════════════════════════════
+   BUTTONS
+══════════════════════════════════════════════ */
+.btn{
+  display:inline-flex;align-items:center;gap:6px;
+  padding:9px 18px;border-radius:var(--rs);font-size:13px;
+  font-weight:600;border:none;cursor:pointer;
+  transition:all .2s;font-family:inherit;
+}
+.btn-primary{background:var(--green);color:#000;}
+.btn-primary:hover{background:#16a34a;transform:translateY(-1px);}
+.btn-secondary{background:var(--s2);color:var(--text2);border:1px solid var(--border);}
+.btn-secondary:hover{background:var(--s3);color:var(--text);}
+.btn-danger{background:var(--rdim);color:var(--red);border:1px solid rgba(239,68,68,.25);}
+.btn-danger:hover{background:rgba(239,68,68,.2);}
+.btn-sm{padding:5px 10px;font-size:11px;}
+
+/* ══════════════════════════════════════════════
+   REMINDER CARDS
+══════════════════════════════════════════════ */
+.reminder-list{display:flex;flex-direction:column;gap:10px;}
+.rcard{
+  background:var(--s1);border:1px solid var(--border);border-radius:var(--r);
+  padding:14px 16px;display:flex;gap:14px;align-items:flex-start;
+  position:relative;overflow:hidden;animation:slideIn .3s ease;
+  transition:background .2s;
+}
+@keyframes slideIn{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:translateY(0)}}
+.rcard::before{
+  content:'';position:absolute;left:0;top:0;bottom:0;
+  width:3px;border-radius:3px 0 0 3px;background:var(--blue);
+}
+.rcard.s-selesai::before{background:var(--green);}
+.rcard.s-batal::before{background:var(--text3);}
+.rcard.s-mendesak::before{background:var(--red);}
+.rcard.firing{animation:pulse 1s ease infinite;}
+@keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(245,158,11,.4)}50%{box-shadow:0 0 0 8px rgba(245,158,11,0)}}
+
+.rcard-date{display:flex;flex-direction:column;align-items:center;gap:2px;min-width:48px;}
+.rday{font-size:26px;font-weight:800;line-height:1;}
+.rmon{font-size:9px;font-weight:700;text-transform:uppercase;color:var(--text2);letter-spacing:1px;}
+.rtime{font-family:"JetBrains Mono",monospace;font-size:10px;color:var(--blue);
+  background:var(--bdim);padding:2px 6px;border-radius:4px;}
+
+.rcard-body{flex:1;}
+.rcard-head{display:flex;align-items:flex-start;gap:8px;flex-wrap:wrap;margin-bottom:5px;}
+.rname{font-size:14px;font-weight:700;}
+.badge{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;padding:3px 8px;border-radius:20px;}
+.bm{background:var(--bdim);color:var(--blue);}
+.bs{background:var(--gdim);color:var(--green);}
+.bb{background:rgba(61,85,112,.2);color:var(--text3);}
+.bd{background:var(--rdim);color:var(--red);}
+
+.rdesc{font-size:12px;color:var(--text2);margin-bottom:6px;line-height:1.55;white-space:pre-wrap;}
+.rmeta{display:flex;flex-wrap:wrap;gap:8px;font-size:11px;color:var(--text3);}
+.rcard-actions{display:flex;gap:5px;flex-shrink:0;flex-direction:column;align-items:flex-end;}
+
+/* ══════════════════════════════════════════════
+   SECTION LABELS
+══════════════════════════════════════════════ */
+.sec-label{
+  font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;
+  color:var(--text3);margin:24px 0 12px;display:flex;align-items:center;gap:8px;
+}
+.sec-label::after{content:'';flex:1;height:1px;background:var(--border);}
+
+/* ══════════════════════════════════════════════
+   ALARM MODAL
+══════════════════════════════════════════════ */
+#alarm-modal{
+  display:none;position:fixed;inset:0;z-index:999;
+  background:rgba(0,0,0,.8);backdrop-filter:blur(8px);
+  align-items:center;justify-content:center;
+}
+#alarm-modal.show{display:flex;}
+.alarm-box{
+  background:var(--s1);border:1px solid rgba(245,158,11,.4);
+  border-radius:var(--r);padding:32px 28px;max-width:380px;width:90%;
+  text-align:center;box-shadow:0 0 60px rgba(245,158,11,.15);
+  animation:popIn .4s ease;
+}
+@keyframes popIn{from{transform:scale(.85);opacity:0}to{transform:scale(1);opacity:1}}
+.alarm-emoji{font-size:52px;display:block;margin-bottom:12px;animation:ring .4s ease infinite alternate;}
+@keyframes ring{from{transform:rotate(-15deg)}to{transform:rotate(15deg)}}
+.alarm-box h2{font-size:17px;font-weight:800;color:var(--yellow);margin-bottom:6px;}
+.alarm-box p{font-size:13px;color:var(--text2);line-height:1.5;}
+.alarm-actions{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-top:20px;}
+
+/* ══════════════════════════════════════════════
+   NOTIF BANNER
+══════════════════════════════════════════════ */
+#notif-banner{
+  display:none;background:var(--ydim);border:1px solid rgba(245,158,11,.25);
+  border-radius:var(--rs);padding:10px 14px;margin-bottom:16px;
+  font-size:12px;color:var(--yellow);align-items:center;gap:10px;
+}
+#notif-banner button{
+  margin-left:auto;background:var(--yellow);color:#000;
+  border:none;border-radius:5px;padding:4px 10px;font-size:11px;
+  font-weight:700;cursor:pointer;
+}
+
+/* ══════════════════════════════════════════════
+   EMPTY STATE
+══════════════════════════════════════════════ */
+.empty{text-align:center;padding:36px;color:var(--text3);font-size:13px;}
+
+/* ══════════════════════════════════════════════
+   TOAST
+══════════════════════════════════════════════ */
+#toast{
+  position:fixed;bottom:20px;left:50%;
+  transform:translateX(-50%) translateY(60px);
+  background:var(--s2);border:1px solid var(--border);
+  border-radius:20px;padding:9px 18px;font-size:12px;
+  color:var(--text);transition:transform .3s;z-index:500;white-space:nowrap;
+}
+#toast.show{transform:translateX(-50%) translateY(0);}
+
+/* ══════════════════════════════════════════════
+   RESPONSIVE
+══════════════════════════════════════════════ */
+@media(max-width:640px){
+  .stats{grid-template-columns:1fr 1fr;}
+  .tbl-head,.row{grid-template-columns:32px 1fr 60px 90px;}
+  .jt,.out{display:none;}
+  .form-grid{grid-template-columns:1fr;}
+  .form-full{grid-column:unset;}
+}
+</style>
+</head>
+<body>
+
+<!-- ══ HEADER ══════════════════════════════════════════ -->
+<header>
+  <div class="brand">
+    <div class="brand-icon">🏦</div>
+    <div>
+      <h1>KOPENA Limpung</h1>
+      <p>Manajemen Pembiayaan · 337 Anggota</p>
+    </div>
+  </div>
+  <div class="hdr-right">
+    <div class="clock" id="clock">--:--:--</div>
+  </div>
+</header>
+
+<!-- ══ MAIN NAV ════════════════════════════════════════ -->
+<div class="nav">
+  <div class="nav-tab active" onclick="switchView('tracker',this)">💳 Tracker Angsuran</div>
+  <div class="nav-tab" onclick="switchView('pengingat',this)">🔔 Pengingat Janji</div>
+</div>
+
+<!-- ══ MAIN ════════════════════════════════════════════ -->
+<main>
+
+<!-- ════════════════════════════════════════════════════
+     VIEW: TRACKER ANGSURAN
+════════════════════════════════════════════════════ -->
+<div class="view active" id="view-tracker">
+
+  <!-- Sub-tabs -->
+  <div class="nav" style="border-radius:var(--r);margin-bottom:18px;border:1px solid var(--border);">
+    <div class="nav-tab active" onclick="setSubTab('bulanan',this)">📅 Per Bulan</div>
+    <div class="nav-tab" onclick="setSubTab('mingguan',this)">📆 Per Minggu</div>
+    <div class="nav-tab" onclick="setSubTab('semua',this)">📋 Semua Anggota</div>
+  </div>
+
+  <!-- BULANAN -->
+  <div id="sub-bulanan">
+    <div class="stats" id="stats-bulanan"></div>
+    <div class="toolbar">
+      <select id="sel-month" onchange="renderBulanan()"></select>
+      <select id="sel-year" onchange="renderBulanan()"></select>
+      <button class="fbtn active" onclick="setFilt('bulanan','semua',this)">Semua</button>
+      <button class="fbtn" onclick="setFilt('bulanan','lunas',this)">✅ Sudah Bayar</button>
+      <button class="fbtn" onclick="setFilt('bulanan','belum',this)">❌ Belum Bayar</button>
+      <div class="spacer"></div>
+      <div class="search-wrap">
+        <span class="search-icon">🔍</span>
+        <input type="text" id="q-bulanan" placeholder="Cari nama..." oninput="renderBulanan()">
+      </div>
+    </div>
+    <div class="prog-card">
+      <div class="prog-label"><span id="prog-text">—</span><span id="prog-pct">0%</span></div>
+      <div class="prog-bar"><div class="prog-fill" id="prog-fill" style="width:0%"></div></div>
+    </div>
+    <div class="tbl-card">
+      <div class="tbl-head"><div>No</div><div>Nama Anggota</div><div>Jatuh Tempo</div><div>Outstanding</div><div>St.</div><div>Aksi</div></div>
+      <div class="tbl-body" id="body-bulanan"></div>
+    </div>
+  </div>
+
+  <!-- MINGGUAN -->
+  <div id="sub-mingguan" style="display:none">
+    <div class="stats" id="stats-mingguan"></div>
+    <div class="toolbar">
+      <select id="sel-wmonth" onchange="renderMingguan()"></select>
+      <select id="sel-wyear" onchange="renderMingguan()"></select>
+      <div class="spacer"></div>
+      <div class="search-wrap">
+        <span class="search-icon">🔍</span>
+        <input type="text" id="q-mingguan" placeholder="Cari nama..." oninput="renderMingguan()">
+      </div>
+    </div>
+    <div id="week-sections"></div>
+  </div>
+
+  <!-- SEMUA -->
+  <div id="sub-semua" style="display:none">
+    <div class="toolbar">
+      <div class="search-wrap" style="max-width:340px">
+        <span class="search-icon">🔍</span>
+        <input type="text" id="q-semua" placeholder="Cari nama / no rekening..." oninput="renderSemua()">
+      </div>
+      <button class="fbtn active" onclick="setFilt('semua','semua',this)">Semua</button>
+      <button class="fbtn" onclick="setFilt('semua','lunas',this)">✅ Sudah Bayar</button>
+      <button class="fbtn" onclick="setFilt('semua','belum',this)">❌ Belum Bayar</button>
+    </div>
+    <div class="tbl-card">
+      <div class="tbl-head"><div>No</div><div>Nama Anggota</div><div>Jatuh Tempo</div><div>Outstanding</div><div>St.</div><div>Aksi</div></div>
+      <div class="tbl-body" id="body-semua"></div>
+    </div>
+  </div>
+
+</div><!-- /view-tracker -->
+
+
+<!-- ════════════════════════════════════════════════════
+     VIEW: PENGINGAT JANJI
+════════════════════════════════════════════════════ -->
+<div class="view" id="view-pengingat">
+
+  <div id="notif-banner">
+    ⚠️ Aktifkan notifikasi agar alarm berbunyi saat halaman tertutup.
+    <button onclick="reqNotif()">Aktifkan</button>
+  </div>
+
+  <!-- Stats pengingat -->
+  <div class="stats" id="stats-janji"></div>
+
+  <!-- Form tambah janji -->
+  <div class="sec-label">Tambah Janji Baru</div>
+  <div class="form-card">
+    <div class="form-grid">
+      <div>
+        <label>Nama Anggota / Nasabah</label>
+        <input type="text" id="f-nama" placeholder="Cth: Bapak Ahmad Fauzi">
+      </div>
+      <div>
+        <label>Nomor Rekening / ID</label>
+        <input type="text" id="f-norek" placeholder="Cth: 541052003094">
+      </div>
+      <div>
+        <label>Tanggal Janji</label>
+        <input type="date" id="f-tgl">
+      </div>
+      <div>
+        <label>Jam Janji</label>
+        <input type="time" id="f-jam">
+      </div>
+      <div>
+        <label>Lokasi / Tempat</label>
+        <input type="text" id="f-lokasi" placeholder="Cth: Rumah nasabah, Kantor KOPENA">
+      </div>
+      <div>
+        <label>Status</label>
+        <select id="f-status">
+          <option value="menunggu">⏳ Menunggu</option>
+          <option value="mendesak">🔴 Mendesak</option>
+          <option value="selesai">✅ Selesai</option>
+          <option value="batal">❌ Batal</option>
+        </select>
+      </div>
+      <div class="form-full">
+        <label>Keterangan Janji</label>
+        <textarea id="f-ket" placeholder="Tulis detail tujuan, agenda, catatan, dokumen yang perlu dibawa..."></textarea>
+      </div>
+      <div>
+        <label>🔔 Ingatkan Sebelum</label>
+        <select id="f-rem">
+          <option value="0">Tepat waktu</option>
+          <option value="5">5 menit sebelum</option>
+          <option value="10">10 menit sebelum</option>
+          <option value="15" selected>15 menit sebelum</option>
+          <option value="30">30 menit sebelum</option>
+          <option value="60">1 jam sebelum</option>
+          <option value="1440">1 hari sebelum</option>
+        </select>
+      </div>
+      <div>
+        <label>Petugas Pendamping</label>
+        <input type="text" id="f-petugas" placeholder="Nama petugas">
+      </div>
+    </div>
+    <div class="form-actions">
+      <button class="btn btn-secondary" onclick="clearForm()">🗑 Bersihkan</button>
+      <button class="btn btn-primary" onclick="saveJanji()">💾 Simpan Janji</button>
+    </div>
+  </div>
+
+  <!-- List janji -->
+  <div class="sec-label">Daftar Janji</div>
+  <div class="toolbar" style="margin-bottom:14px">
+    <div class="search-wrap">
+      <span class="search-icon">🔍</span>
+      <input type="text" id="q-janji" placeholder="Cari nama, keterangan..." oninput="renderJanji()">
+    </div>
+    <button class="fbtn active" onclick="setFilt('janji','semua',this)">Semua</button>
+    <button class="fbtn" onclick="setFilt('janji','menunggu',this)">⏳ Menunggu</button>
+    <button class="fbtn" onclick="setFilt('janji','mendesak',this)">🔴 Mendesak</button>
+    <button class="fbtn" onclick="setFilt('janji','selesai',this)">✅ Selesai</button>
+  </div>
+  <div class="reminder-list" id="janji-list"></div>
+
+</div><!-- /view-pengingat -->
+
+</main>
+
+<!-- ══ ALARM MODAL ══════════════════════════════════════ -->
+<div id="alarm-modal">
+  <div class="alarm-box">
+    <span class="alarm-emoji">🔔</span>
+    <h2>Waktunya Pendampingan!</h2>
+    <div id="alarm-info"></div>
+    <div class="alarm-actions">
+      <button class="btn btn-secondary" onclick="snoozeAlarm()">⏸ Tunda 10 Mnt</button>
+      <button class="btn btn-primary" onclick="dismissAlarm()">✅ OK, Mengerti</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+/* ════════════════════════════════════════════════════
+   DATA ANGGOTA (337 records)
+════════════════════════════════════════════════════ */
+const MEMBERS = [{"no": "1", "norek": "541052003094", "nama": "ABDUL AYIS SUTRISNO", "plafond": 10000000, "outstanding": 9127999, "jatuhTempo": "27-01-2028", "ao": "DIMAS RIZKI PUTRA SULISTIO", "progres": "BERUBAH"}, {"no": "2", "norek": "541052002989", "nama": "ABDUL MUTHOLIB", "plafond": 17000000, "outstanding": 10339185, "jatuhTempo": "20-11-2026", "ao": "DIMAS RIZKI PUTRA SULISTIO", "progres": "TETAP"}, {"no": "3", "norek": "541052003076", "nama": "AGUS ARJITO", "plafond": 4500000, "outstanding": 3138461, "jatuhTempo": "09-12-2026", "ao": "DIMAS RIZKI PUTRA SULISTIO", "progres": "TETAP"}, {"no": "4", "norek": "551052001916", "nama": "AGUS SLAMET", "plafond": 2000000, "outstanding": 2000000, "jatuhTempo": "06-07-2026", "ao": "DIMAS RIZKI PUTRA SULISTIO", "progres": "BERUBAH"}, {"no": "5", "norek": "544052000390", "nama": "AGUS SURYANTO", "plafond": 1500000, "outstanding": 1500000, "jatuhTempo": "03-12-2018", "ao": "DIMAS RIZKI PUTRA SULISTIO", "progres": "TETAP"}, {"no": "6", "norek": "541052003047", "nama": "AGUS WIANTO", "plafond": 8000000, "outstanding": 4276921, "jatuhTempo": "16-09-2026", "ao": "DIMAS RIZKI PUTRA SULISTIO", "progres": "TETAP"}, {"no": "7", "norek": "541052003110", "nama": "AHMAD KHAFIDIN", "plafond": 5000000, "outstanding": 4789327, "jatuhTempo": "10-09-2027", "ao": "", "progres": ""}, {"no": "8", "norek": "551052001940", "nama": "AHMAD NASIRIN", "plafond": 20000000, "outstanding": 20000000, "jatuhTempo": "17-09-2026", "ao": "", "progres": ""}, {"no": "9", "norek": "541052002731", "nama": "AHMAD RIZKI", "plafond": 20000000, "outstanding": 12737978, "jatuhTempo": "27-02-2027", "ao": "DIMAS RIZKI PUTRA SULISTIO", "progres": "TETAP"}, {"no": "10", "norek": "541052002822", "nama": "AHMAD SATRIA", "plafond": 10000000, "outstanding": 5230850, "jatuhTempo": "26-07-2027", "ao": "DIMAS RIZKI PUTRA SULISTIO", "progres": "TETAP"}, {"no": "11", "norek": "541052003087", "nama": "AHMAD SOBIRIN", "plafond": 4000000, "outstanding": 3425641, "jatuhTempo": "08-01-2027", "ao": "DIMAS RIZKI PUTRA SULISTIO", "progres": "TETAP"}, {"no": "12", "norek": "551052000381", "nama": "AHMAD SOBIRIN", "plafond": 7000000, "outstanding": 7000000, "jatuhTempo": "28-09-2015", "ao": "FINA MILATUL AZKA", "progres": "TETAP"}, {"no": "13", "norek": "541052002991", "nama": "AHMAD TOKHIR", "plafond": 7000000, "outstanding": 3873024, "jatuhTempo": "20-11-2026", "ao": "DIMAS RIZKI PUTRA SULISTIO", "progres": "BERUBAH"}, {"no": "14", "norek": "551052001534", "nama": "AHMAD WAHIDIN", "plafond": 50000000, "outstanding": 35000000, "jatuhTempo": "27-07-2023", "ao": "FINA MILATUL AZKA", "progres": "TETAP"}, {"no": "15", "norek": "541052003067", "nama": "AHMAT MUSBIHIN", "plafond": 4000000, "outstanding": 2467950, "jatuhTempo": "06-11-2026", "ao": "DIMAS RIZKI PUTRA SULISTIO", "progres": "TETAP"}, {"no": "16", "norek": "541052002703", "nama": "AKH. FAOZAN", "plafond": 20000000, "outstanding": 17882879, "jatuhTempo": "19-01-2027", "ao": "DIMAS RIZKI PUTRA SULISTIO", "progres": "TETAP"}, {"no": "17", "norek": "551052001922", "nama": "AKHADUN", "plafond": 4000000, "outstanding": 4000000, "jatuhTempo": "05-08-2026", "ao": "TANPA NAMA", "progres": "BERUBAH"}, {"no": "18", "norek": "541052003122", "nama": "ALFA KHOIRINA", "plafond": 6500000, "outstanding": 6500000, "jatuhTempo": "30-04-2028", "ao": "", "progres": ""}, {"no": "19", "norek": "541052002896", "nama": "ALI MASYKUR", "plafond": 10000000, "outstanding": 3973328, "jatuhTempo": "04-12-2026", "ao": "DIMAS RIZKI PUTRA SULISTIO", "progres": "TETAP"}, {"no": "20", "norek": "543052000012", "nama": "ALI MURTADLO", "plafond": 25000000, "outstanding": 17499994, "jatuhTempo": "13-11-2023", "ao": "FINA MILATUL AZKA", "progres": "TETAP"}, {"no": "21", "norek": "541052003020", "nama": "AMAD FAUZI", "plafond": 3000000, "outstanding": 330682, "jatuhTempo": "04-05-2026", "ao": "DIMAS RIZKI PUTRA SULISTIO", "progres": "TETAP"}, {"no": "22", "norek": "541052002959", "nama": "AMIN", "plafond": 45000000, "outstanding": 25740000, "jatuhTempo": "14-03-2027", "ao": "DIMAS RIZKI PUTRA SULISTIO", "progres": "BERUBAH"}, {"no": "23", "norek": "541052002963", "nama": "ANDRY HENDRATNO", "plafond": 35000000, "outstanding": 25896587, "jatuhTempo": "17-03-2028", "ao": "DIMAS RIZKI PUTRA SULISTIO", "progres": "BERUBAH"}, {"no": "24", "norek": "541052002847", "nama": "ANI MURDIYANI", "plafond": 10000000, "outstanding": 3511661, "jatuhTempo": "02-09-2026", "ao": "DIMAS RIZKI PUTRA SULISTIO", "progres": "TETAP"}, {"no": "25", "norek": "551052001767", "nama": "ANIK ERMAWATI", "plafond": 17000000, "outstanding": 17000000, "jatuhTempo": "06-06-2025", "ao": "DIMAS RIZKI PUTRA SULISTIO", "progres": "TETAP"}, {"no": "26", "norek": "541052000544", "nama": "ANTONO", "plafond": 7000000, "outstanding": 5833332, "jatuhTempo": "21-02-2017", "ao": "TANPA NAMA", "progres": "TETAP"}, {"no": "27", "norek": "541052002979", "nama": "APRILIYANTI", "plafond": 25000000, "outstanding": 16333330, "jatuhTempo": "17-04-2027", "ao": "DIMAS RIZKI PUTRA SULISTIO", "progres": "BERUBAH"}, {"no": "28", "norek": "541052003008", "nama": "ARI ROSIANA", "plafond": 5500000, "outstanding": 3593330, "jatuhTempo": "18-06-2027", "ao": "DIMAS RIZKI PUTRA SULISTIO", "progres": "TETAP"}, {"no": "29", "norek": "541052003089", "nama": "ARIF MUSTOFA", "plafond": 50000000, "outstanding": 48129153, "jatuhTempo": "15-07-2029", "ao": "DIMAS RIZKI PUTRA SULISTIO", "progres": "TETAP"}, {"no": "30", "norek": "541052002753", "nama": "ARIF SODIKIN", "plafond": 40000000, "outstanding": 36539040, "jatuhTempo": "28-03-2027", "ao": "DIMAS RIZKI PUTRA SULISTIO", "progres": "TETAP"}, {"no": "31", "norek": "541052003050", "nama": "ARIF USMANTO", "plafond": 50000000, "outstanding": 43706831, "jatuhTempo": "22-09-2028", "ao": "DIMAS RIZKI PUTRA SULISTIO", "progres": "BERUBAH"}, {"no": "32", "norek": "551052001941", "nama": "ARIPIN", "plafond": 10000000, "outstanding": 10000000, "jatuhTempo": "10-10-2026", "ao": "", "progres": ""}, {"no": "33", "norek": "541052002973", "nama": "ASHAR MUFIDI", "plafond": 4000000, "outstanding": 1282167, "jatuhTempo": "21-09-2026", "ao": "DIMAS RIZKI PUTRA SULISTIO", "progres": "TETAP"}, {"no": "34", "norek": "551052001936", "nama": "ASIAH", "plafond": 5000000, "outstanding": 5000000, "jatuhTempo": "09-09-2026", "ao": "", "progres": ""}, {"no": "35", "norek": "541052003057", "nama": "ASLAKHUL ARIFIN", "plafond": 14000000, "outstanding": 12981410, "jatuhTempo": "08-10-2026", "ao": "DIMAS RIZKI PUTRA SULISTIO", "progres": "TETAP"}, {"no": "36", "norek": "541052002706", "nama": "ASMAWI", "plafond": 40000000, "outstanding": 15938443, "jatuhTempo": "24-01-2027", "ao": "DIMAS RIZKI PUTRA SULISTIO", "progres": "TETAP"}, {"no": "37", "norek": "541052003088", "nama": "ASRO", "plafond": 15000000, "outstanding": 13692000, "jatuhTempo": "15-01-2028", "ao": "DIMAS RIZKI PUTRA SULISTIO", "progres": "TETAP"}, {"no": "38", "norek": "551052001914", "nama": "ASTUTI", "plafond": 15000000, "outstanding": 15000000, "jatuhTempo": "24-06-2026", "ao": "FINA MILATUL AZKA", "progres": "BERUBAH"}, {"no": "39", "norek": "541052003007", "nama": "BAHRI", "plafond": 13000000, "outstanding": 8493330, "jatuhTempo": "18-06-2027", "ao": "DIMAS RIZKI PUTRA SULISTIO", "progres": "TETAP"}, {"no": "40", "norek": "551052001813", "nama": "BAMBANG MUNDAYAT", "plafond": 10000000, "outstanding": 10000000, "jatuhTempo": "14-09-2025", "ao": "FINA MILATUL AZKA", "progres": "TETAP"}, {"no": "41", "norek": "541052003084", "nama": "BAMBANG SUGIARTO", "plafond": 4000000, "outstanding": 3124616, "jatuhTempo": "07-01-2027", "ao": "DIMAS RIZKI PUTRA SULISTIO", "progres": "TETAP"}, {"no": "42", "norek": "541052003085", "nama": "BAMBANG SUPRIYANTO", "plafond": 5000000, "outstanding": 4715334, "jatuhTempo": "07-01-2028", "ao": "DIMAS RIZKI PUTRA SULISTIO", "progres": "BERUBAH"}, {"no": "43", "norek": "541052002984", "nama": "BAMBANG SUSANTO", "plafond": 5000000, "outstanding": 1903505, "jatuhTempo": "29-10-2026", "ao": "DIMAS RIZKI PUTRA SULISTIO", "progres": "TETAP"}, {"no": "44", "norek": "541052002826", "nama": "BARIYAH", "plafond": 30000000, "outstanding": 13275000, "jatuhTempo": "02-08-2026", "ao": "FINA MILATUL AZKA", "progres": "TETAP"}, {"no": "45", "norek": "541052002921", "nama": "BASARI", "plafond": 10000000, "outstanding": 5298329, "jatuhTempo": "23-01-2027", "ao": "FINA MILATUL AZKA", "progres": "BERUBAH"}, {"no": "46", "norek": "551052001525", "nama": "BAWON", "plafond": 6000000, "outstanding": 4000000, "jatuhTempo": "09-07-2023", "ao": "DIMAS RIZKI PUTRA SULISTIO", "progres": "BERUBAH"}, {"no": "47", "norek": "541052003113", "nama": "BUNASIR", "plafond": 10000000, "outstanding": 9721333, "jatuhTempo": "16-03-2028", "ao": "", "progres": ""}, {"no": "48", "norek": "541052003098", "nama": "DASMONO", "plafond": 7000000, "outstanding": 6601466, "jatuhTempo": "02-02-2028", "ao": "", "progres": ""}, {"no": "49", "norek": "541052003012", "nama": "DENI SUSANTI", "plafond": 40000000, "outstanding": 32402405, "jatuhTempo": "20-06-2028", "ao": "DIMAS RIZKI PUTRA SULISTIO", "progres": "TETAP"}, {"no": "50", "norek": "541052003077", "nama": "DEVI DWI ANGGRAENI", "plafond": 15000000, "outstanding": 13100000, "jatuhTempo": "09-12-2027", "ao": "DIMAS RIZKI PUTRA SULISTIO", "progres": "TETAP"}, {"no": "51", "norek": "541052002898", "nama": "DIAH HUSNA ARIFAH", "plafond": 55000000, "outstanding": 33724163, "jatuhTempo": "10-12-2026", "ao": "DIMAS RIZKI PUTRA SULISTIO", "progres": "TETAP"}, {"no": "52", "norek": "551052001944", "nama": "DIAN NOVISANTI", "plafond": 800000, "outstanding": 800000, "jatuhTempo": "29-05-2026", "ao": "", "progres": ""}, {"no": "53", "norek": "541052002955", "nama": "DIMAS RIZKY PUTRA SULISTIO", "plafond": 35000000, "outstanding": 25896587, "jatuhTempo": "12-03-2028", "ao": "DIMAS RIZKI PUTRA SULISTIO", "progres": "TETAP"}, {"no": "54", "norek": "541052002889", "nama": "DIMAS WAHYU RANGGA PRADANA", "plafond": 25000000, "outstanding": 15922493, "jatuhTempo": "20-11-2027", "ao": "DIMAS RIZKI PUTRA SULISTIO", "progres": "TETAP"}, {"no": "55", "norek": "541052003048", "nama": "DJUNED DJANSITA", "plafond": 30000000, "outstanding": 26224101, "jatuhTempo": "17-09-2028", "ao": "DIMAS RIZKI PUTRA SULISTIO", "progres": "TETAP"}, {"no": "56", "norek": "541052002733", "nama": "EKO HARYANTO", "plafond": 40000000, "outstanding": 20923429, "jatuhTempo": "04-03-2027", "ao": "DIMAS RIZKI PUTRA SULISTIO", "progres": "TETAP"}, {"no": "57", "norek": "551052001731", "nama": "EKO PRATIKNO", "plafond": 15000000, "outstanding": 7000000, "jatuhTempo": "01-04-2025", "ao": "DIMAS RIZKI PUTRA SULISTIO", "progres": "TETAP"}, {"no": "58", "norek": "541052002240", "nama": "EKO SANTOSO", "plafond": 510000000, "outstanding": 510000000, "jatuhTempo": "15-12-2023", "ao": "DIMAS RIZKI PUTRA SULISTIO", "progres": "TETAP"}, {"no": "59", "norek": "541052001721", "nama": "EKO SANTOSO", "plafond": 1400000000, "outstanding": 1127777777, "jatuhTempo": "17-05-2022", "ao": "TANPA NAMA", "progres": "TETAP"}, {"no": "60", "norek": "541052002871", "nama": "EMA LUTFIA KURNIAWATI", "plafond": 20000000, "outstanding": 7946672, "jatuhTempo": "17-10-2026", "ao": "DIMAS RIZKI PUTRA SULISTIO", "progres": "TETAP"}, {"no": "61", "norek": "541052003022", "nama": "ERI WIDAYATI", "plafond": 8000000, "outstanding": 2207689, "jatuhTempo": "07-07-2026", "ao": "DIMAS RIZKI PUTRA SULISTIO", "progres": "TETAP"}, {"no": "62", "norek": "541052001384", "nama": "ERIK YUVENALIS SISWANDI", "plafond": 200000000, "outstanding": 200000000, "jatuhTempo": "18-05-2021", "ao": "TANPA NAMA", "progres": "TETAP"}, {"no": "63", "norek": "541052002907", "nama": "ERWIN SUGIARNI S.PD", "plafond": 80000000, "outstanding": 53093097, "jatuhTempo": "23-12-2027", "ao": "DIMAS RIZKI PUTRA SULISTIO", "progres": "TETAP"}, {"no": "64", "norek": "541052003107", "nama": "EVA NOFIANA", "plafond": 20000000, "outstanding": 19440240, "jatuhTempo": "26-02-2029", "ao": "", "progres": ""}, {"no": "65", "norek": "541052003093", "nama": "FAHRUDIN", "plafond": 5000000, "outstanding": 3905769, "jatuhTempo": "26-01-2027", "ao": "DIMAS RIZKI PUTRA SULISTIO", "progres": "TETAP"}, {"no": "66", "norek": "541052002957", "nama": "FATKHUL MUBIN", "plafond": 55000000, "outstanding": 29140829, "jatuhTempo": "13-03-2027", "ao": "DIMAS RIZKI PUTRA SULISTIO", "progres": "TETAP"}, {"no": "67", "norek": "541052003004", "nama": "FATONAH", "plafond": 8000000, "outstanding": 3976612, "jatuhTempo": "13-12-2026", "ao": "DIMAS RIZKI PUTRA SULISTIO", "progres": "BERUBAH"}, {"no": "68", "norek": "551052001646", "nama": "FENI YULISTIANI", "plafond": 33000000, "outstanding": 33000000, "jatuhTempo": "29-08-2024", "ao": "DIMAS RIZKI PUTRA SULISTIO", "progres": "TETAP"}, {"no": "69", "norek": "541052003071", "nama": "FERI DEWI SUSANTI", "plafond": 7000000, "outstanding": 4318911, "jatuhTempo": "14-11-2026", "ao": "FINA MILATUL AZKA", "progres": "TETAP"}, {"no": "70", "norek": "544052000736", "nama": "FIKI RISKIANTO", "plafond": 1500000, "outstanding": 1125000, "jatuhTempo": "09-04-2020", "ao": "DIMAS RIZKI PUTRA SULISTIO", "progres": "TETAP"}, {"no": "71", "norek": "541052002980", "nama": "FINA SAFITRI", "plafond": 5000000, "outstanding": 2485376, "jatuhTempo": "25-10-2026", "ao": "FINA MILATUL AZKA", "progres": "TETAP"}, {"no": "72", "norek": "543052000036", "nama": "FITRIANI", "plafond": 20000000, "outstanding": 15685252, "jatuhTempo": "20-05-2029", "ao": "DIMAS RIZKI PUTRA SULISTIO", "progres": "TETAP"}, {"no": "73", "norek": "541052002976", "nama": "GALVIN ADI SAPUTRA", "plafond": 35000000, "outstanding": 21460837, "jatuhTempo": "27-03-2027", "ao": "DIMAS RIZKI PUTRA SULISTIO", "progres": "TETAP"}, {"no": "74", "norek": "541052002701", "nama": "GATRA IMAM ARIFIYANTO", "plafond": 50000000, "outstanding": 19923045, "jatuhTempo": "17-01-2027", "ao": "DIMAS RIZKI PUTRA SULISTIO", "progres": "TETAP"}, {"no": "75", "norek": "551052001929", "nama": "GIYONO", "plafond": 3000000, "outstanding": 3000000, "jatuhTempo": "18-08-2026", "ao": "", "progres": ""}, {"no": "76", "norek": "541052000929", "nama": "H DULJALIL", "plafond": 6000000, "outstanding": 6000000, "jatuhTempo": "07-01-2020", "ao": "TANPA NAMA", "progres": "TETAP"}, {"no": "77", "norek": "541052003055", "nama": "HADI SUSILO", "plafond": 3000000, "outstanding": 1585227, "jatuhTempo": "25-07-2026", "ao": "DIMAS RIZKI PUTRA SULISTIO", "progres": "TETAP"}, {"no": "78", "norek": "111052000007", "nama": "HADI SUSILO", "plafond": 200000000, "outstanding": 431358285, "jatuhTempo": "25-10-2020", "ao": "DIMAS RIZKI PUTRA SULISTIO", "progres": "TETAP"}, {"no": "79", "norek": "541052003104", "nama": "HARMANTO", "plafond": 60000000, "outstanding": 55634615, "jatuhTempo": "13-02-2027", "ao": "", "progres": ""}, {"no": "80", "norek": "541052002998", "nama": "HARTATIK", "plafond": 50000000, "outstanding": 32666670, "jatuhTempo": "03-06-2027", "ao": "DIMAS RIZKI PUTRA SULISTIO", "progres": "TETAP"}, {"no": "81", "norek": "551052001909", "nama": "HARTININGSIH", "plafond": 35000000, "outstanding": 12000000, "jatuhTempo": "10-06-2026", "ao": "DIMAS RIZKI PUTRA SULISTIO", "progres": "BERUBAH"}, {"no": "82", "norek": "541052001307", "nama": "HARYONO DRS", "plafond": 50000000, "outstanding": 37499999, "jatuhTempo": "07-03-2021", "ao": "DIMAS RIZKI PUTRA SULISTIO", "progres": "TETAP"}, {"no": "83", "norek": "541052003106", "nama": "HENI APRILIA ROHMAWATI", "plafond": 25000000, "outstanding": 23576666, "jatuhTempo": "23-02-2028", "ao": "", "progres": ""}, {"no": "84", "norek": "541052002986", "nama": "HERI SEPTIAWAN", "plafond": 30000000, "outstanding": 23620499, "jatuhTempo": "09-05-2028", "ao": "DIMAS RIZKI PUTRA SULISTIO", "progres": "TETAP"}, {"no": "85", "norek": "541052003066", "nama": "HERWIDIYANTI", "plafond": 1000000, "outstanding": 427273, "jatuhTempo": "28-08-2026", "ao": "", "progres": ""}, {"no": "86", "norek": "551052001943", "nama": "IIS ERNAWATI", "plafond": 3000000, "outstanding": 3000000, "jatuhTempo": "24-10-2026", "ao": "", "progres": ""}, {"no": "87", "norek": "541052002997", "nama": "IMAM SYARONI", "plafond": 5000000, "outstanding": 2485376, "jatuhTempo": "02-12-2026", "ao": "DIMAS RIZKI PUTRA SULISTIO", "progres": "TETAP"}, {"no": "88", "norek": "541052003101", "nama": "INDAH ROZATI", "plafond": 3000000, "outstanding": 2569231, "jatuhTempo": "04-02-2027", "ao": "TANPA NAMA", "progres": "TETAP"}, {"no": "89", "norek": "541052002990", "nama": "INDRAYANI", "plafond": 4000000, "outstanding": 375645, "jatuhTempo": "20-05-2026", "ao": "DIMAS RIZKI PUTRA SULISTIO", "progres": "TETAP"}, {"no": "90", "norek": "541052000239", "nama": "IRWANTO", "plafond": 8000000, "outstanding": 7333334, "jatuhTempo": "10-01-2016", "ao": "TANPA NAMA", "progres": "TETAP"}, {"no": "91", "norek": "541052000210", "nama": "ISLAHUL KHIKAM", "plafond": 5000000, "outstanding": 4166666, "jatuhTempo": "20-11-2014", "ao": "FINA MILATUL AZKA", "progres": "TETAP"}, {"no": "92", "norek": "541052002936", "nama": "ISTIKHOMAH", "plafond": 20000000, "outstanding": 13850003, "jatuhTempo": "13-02-2027", "ao": "DIMAS RIZKI PUTRA SULISTIO", "progres": "TETAP"}, {"no": "93", "norek": "541052002776", "nama": "ISTIKOWATI", "plafond": 50000000, "outstanding": 23106229, "jatuhTempo": "24-05-2027", "ao": "FINA MILATUL AZKA", "progres": "TETAP"}, {"no": "94", "norek": "551052001836", "nama": "JAWAN", "plafond": 11000000, "outstanding": 11000000, "jatuhTempo": "15-11-2025", "ao": "DIMAS RIZKI PUTRA SULISTIO", "progres": "BERUBAH"}, {"no": "95", "norek": "541052002897", "nama": "JIHAN MAULANA YUSUF", "plafond": 7000000, "outstanding": 4573330, "jatuhTempo": "04-12-2026", "ao": "DIMAS RIZKI PUTRA SULISTIO", "progres": "TETAP"}, {"no": "96", "norek": "541052002455", "nama": "JUMAHAR", "plafond": 226000000, "outstanding": 59000000, "jatuhTempo": "16-11-2027", "ao": "DIMAS RIZKI PUTRA SULISTIO", "progres": "TETAP"}, {"no": "97", "norek": "541052002245", "nama": "JUMIATI", "plafond": 500000000, "outstanding": 500000000, "jatuhTempo": "22-12-2022", "ao": "FINA MILATUL AZKA", "progres": "TETAP"}, {"no": "98", "norek": "541052002757", "nama": "JURIYAH", "plafond": 70000000, "outstanding": 22590909, "jatuhTempo": "05-12-2026", "ao": "DIMAS RIZKI PUTRA SULISTIO", "progres": "TETAP"}, {"no": "99", "norek": "541052000889", "nama": "KADARI", "plafond": 3600000, "outstanding": 3300000, "jatuhTempo": "28-11-2017", "ao": "TANPA NAMA", "progres": "TETAP"}, {"no": "100", "norek": "541052002797", "nama": "KARNO", "plafond": 14000000, "outstanding": 8008004, "jatuhTempo": "25-06-2026", "ao": "DIMAS RIZKI PUTRA SULISTIO", "progres": "TETAP"}, {"no": "101", "norek": "551052001800", "nama": "KARSIYAH", "plafond": 30000000, "outstanding": 30000000, "jatuhTempo": "21-08-2025", "ao": "DIMAS RIZKI PUTRA SULISTIO", "progres": "BERUBAH"}, {"no": "102", "norek": "543052000041", "nama": "KARYONO", "plafond": 9000000, "outstanding": 8707800, "jatuhTempo": "23-12-2026", "ao": "FINA MILATUL AZKA", "progres": "TETAP"}, {"no": "103", "norek": "541052003117", "nama": "KHAERON", "plafond": 5000000, "outstanding": 5000000, "jatuhTempo": "14-04-2027", "ao": "", "progres": ""}, {"no": "104", "norek": "551052001734", "nama": "KHAERUDIN", "plafond": 40000000, "outstanding": 40000000, "jatuhTempo": "07-04-2025", "ao": "DIMAS RIZKI PUTRA SULISTIO", "progres": "TETAP"}, {"no": "105", "norek": "551052001089", "nama": "KHAIRUDIN", "plafond": 10000000, "outstanding": 10000000, "jatuhTempo": "09-04-2020", "ao": "DIMAS RIZKI PUTRA SULISTIO", "progres": "TETAP"}, {"no": "106", "norek": "541052000201", "nama": "KHOIRUDIN", "plafond": 10000000, "outstanding": 8333334, "jatuhTempo": "04-11-2014", "ao": "FINA MILATUL AZKA", "progres": "TETAP"}, {"no": "107", "norek": "111052000017", "nama": "KHOIRUL KIROM", "plafond": 700000000, "outstanding": 1470049513, "jatuhTempo": "21-03-2020", "ao": "DIMAS RIZKI PUTRA SULISTIO", "progres": "TETAP"}, {"no": "108", "norek": "551052001930", "nama": "KHOLIPAH", "plafond": 5000000, "outstanding": 5000000, "jatuhTempo": "27-08-2026", "ao": "TANPA NAMA", "progres": "BERUBAH"}, {"no": "109", "norek": "551052000142", "nama": "KHOMSATUN", "plafond": 6000000, "outstanding": 6000000, "jatuhTempo": "28-02-2014", "ao": "FINA MILATUL AZKA", "progres": "TETAP"}, {"no": "110", "norek": "541052002912", "nama": "KHONITI", "plafond": 20000000, "outstanding": 8850005, "jatuhTempo": "02-01-2027", "ao": "DIMAS RIZKI PUTRA SULISTIO", "progres": "TETAP"}, {"no": "111", "norek": "541052003123", "nama": "KHUMAEDI", "plafond": 5000000, "outstanding": 5000000, "jatuhTempo": "30-04-2027", "ao": "", "progres": ""}, {"no": "112", "norek": "541052003068", "nama": "KHUMAIYAH", "plafond": 1000000, "outstanding": 528409, "jatuhTempo": "10-09-2026", "ao": "FINA MILATUL AZKA", "progres": "TETAP"}, {"no": "113", "norek": "541052002952", "nama": "KHUSAENI", "plafond": 5000000, "outstanding": 2649171, "jatuhTempo": "07-03-2027", "ao": "DIMAS RIZKI PUTRA SULISTIO", "progres": "TETAP"}, {"no": "114", "norek": "541052002585", "nama": "KOMARIYAH", "plafond": 12000000, "outstanding": 2333343, "jatuhTempo": "18-07-2026", "ao": "DIMAS RIZKI PUTRA SULISTIO", "progres": "TETAP"}, {"no": "115", "norek": "543052000037", "nama": "KOMARUDIN", "plafond": 20000000, "outstanding": 15685252, "jatuhTempo": "20-05-2029", "ao": "DIMAS RIZKI PUTRA SULISTIO", "progres": "TETAP"}, {"no": "116", "norek": "551052000823", "nama": "KUS RAHAYU", "plafond": 6000000, "outstanding": 6000000, "jatuhTempo": "06-05-2019", "ao": "FINA MILATUL AZKA", "progres": "TETAP"}, {"no": "117", "norek": "541052003082", "nama": "KUSIYAH", "plafond": 30000000, "outstanding": 26200000, "jatuhTempo": "24-12-2027", "ao": "DIMAS RIZKI PUTRA SULISTIO", "progres": "BERUBAH"}, {"no": "118", "norek": "541052002915", "nama": "KUSRINTO", "plafond": 11000000, "outstanding": 5828171, "jatuhTempo": "08-01-2027", "ao": "DIMAS RIZKI PUTRA SULISTIO", "progres": "TETAP"}, {"no": "119", "norek": "541052003002", "nama": "KUSTIANI", "plafond": 7000000, "outstanding": 4847497, "jatuhTempo": "12-06-2027", "ao": "DIMAS RIZKI PUTRA SULISTIO", "progres": "BERUBAH"}, {"no": "120", "norek": "541052002954", "nama": "KUSTINI", "plafond": 22500000, "outstanding": 16647804, "jatuhTempo": "11-03-2028", "ao": "DIMAS RIZKI PUTRA SULISTIO", "progres": "TETAP"}, {"no": "121", "norek": "541052002779", "nama": "KUSTIYAH", "plafond": 35000000, "outstanding": 33859610, "jatuhTempo": "30-05-2027", "ao": "TANPA NAMA", "progres": "TETAP"}, {"no": "122", "norek": "541052002630", "nama": "KUWATI", "plafond": 10000000, "outstanding": 1666660, "jatuhTempo": "05-04-2025", "ao": "DIMAS RIZKI PUTRA SULISTIO", "progres": "TETAP"}, {"no": "123", "norek": "541052002707", "nama": "LAILATUN NAFIAH", "plafond": 70000000, "outstanding": 59741746, "jatuhTempo": "24-01-2027", "ao": "DIMAS RIZKI PUTRA SULISTIO", "progres": "TETAP"}, {"no": "124", "norek": "541052003118", "nama": "LEZA MAULIDINA SALMA", "plafond": 5000000, "outstanding": 5000000, "jatuhTempo": "15-04-2027", "ao": "", "progres": ""}, {"no": "125", "norek": "541052003049", "nama": "LILIK SUSANTO", "plafond": 1500000, "outstanding": 675481, "jatuhTempo": "22-09-2026", "ao": "DIMAS RIZKI PUTRA SULISTIO", "progres": "TETAP"}, {"no": "126", "norek": "544052000324", "nama": "LUFNI HIDAYAT", "plafond": 1500000, "outstanding": 750000, "jatuhTempo": "11-09-2018", "ao": "FINA MILATUL AZKA", "progres": "TETAP"}, {"no": "127", "norek": "111052000019", "nama": "LUKMAN HAKIM", "plafond": 1000000000, "outstanding": 1942764224, "jatuhTempo": "26-06-2020", "ao": "FINA MILATUL AZKA", "progres": "TETAP"}, {"no": "128", "norek": "541052001549", "nama": "LUSIANA", "plafond": 5000000, "outstanding": 5000000, "jatuhTempo": "07-05-2020", "ao": "FINA MILATUL AZKA", "progres": "TETAP"}, {"no": "129", "norek": "541052002969", "nama": "LUTFIATUL KHANIFA", "plafond": 15000000, "outstanding": 9122809, "jatuhTempo": "19-09-2026", "ao": "DIMAS RIZKI PUTRA SULISTIO", "progres": "TETAP"}, {"no": "130", "norek": "541052002884", "nama": "M. AINUL FIRDAUS", "plafond": 5500000, "outstanding": 726893, "jatuhTempo": "15-05-2026", "ao": "FINA MILATUL AZKA", "progres": "TETAP"}, {"no": "131", "norek": "541052000455", "nama": "MAHFUDIN", "plafond": 8000000, "outstanding": 7000001, "jatuhTempo": "23-02-2017", "ao": "TANPA NAMA", "progres": "TETAP"}, {"no": "132", "norek": "541052001345", "nama": "MAHYUN", "plafond": 40000000, "outstanding": 32222223, "jatuhTempo": "10-04-2021", "ao": "TANPA NAMA", "progres": "TETAP"}, {"no": "133", "norek": "551052001783", "nama": "MAIMANAH", "plafond": 10000000, "outstanding": 10000000, "jatuhTempo": "20-07-2025", "ao": "DIMAS RIZKI PUTRA SULISTIO", "progres": "TETAP"}, {"no": "134", "norek": "551052001216", "nama": "MALIKHAH", "plafond": 40000000, "outstanding": 40000000, "jatuhTempo": "19-06-2023", "ao": "DIMAS RIZKI PUTRA SULISTIO", "progres": "TETAP"}, {"no": "135", "norek": "541052002587", "nama": "MARUTI", "plafond": 40000000, "outstanding": 12222225, "jatuhTempo": "26-07-2026", "ao": "DIMAS RIZKI PUTRA SULISTIO", "progres": "TETAP"}, {"no": "136", "norek": "541052000927", "nama": "MARWAN", "plafond": 90000000, "outstanding": 77500000, "jatuhTempo": "07-01-2020", "ao": "TANPA NAMA", "progres": "TETAP"}, {"no": "137", "norek": "541052002961", "nama": "MEI DWI ARIS SETIA", "plafond": 6000000, "outstanding": 1923250, "jatuhTempo": "14-09-2026", "ao": "DIMAS RIZKI PUTRA SULISTIO", "progres": "TETAP"}, {"no": "138", "norek": "541052002716", "nama": "MEY KURNIAWATI", "plafond": 30000000, "outstanding": 21920000, "jatuhTempo": "02-02-2026", "ao": "DIMAS RIZKI PUTRA SULISTIO", "progres": "TETAP"}, {"no": "139", "norek": "541052002631", "nama": "MIATI", "plafond": 20000000, "outstanding": 3888876, "jatuhTempo": "06-10-2026", "ao": "DIMAS RIZKI PUTRA SULISTIO", "progres": "BERUBAH"}, {"no": "140", "norek": "541052003095", "nama": "MISBAHUL MUNIR", "plafond": 5000000, "outstanding": 3905769, "jatuhTempo": "28-01-2027", "ao": "DIMAS RIZKI PUTRA SULISTIO", "progres": "TETAP"}, {"no": "141", "norek": "541052003064", "nama": "MISRO", "plafond": 25000000, "outstanding": 20099998, "jatuhTempo": "24-10-2027", "ao": "DIMAS RIZKI PUTRA SULISTIO", "progres": "TETAP"}, {"no": "142", "norek": "541052003074", "nama": "MISTIATI", "plafond": 5000000, "outstanding": 3879807, "jatuhTempo": "03-12-2026", "ao": "FINA MILATUL AZKA", "progres": "TETAP"}, {"no": "143", "norek": "541052003103", "nama": "MISTIYAH", "plafond": 10000000, "outstanding": 9430666, "jatuhTempo": "12-02-2028", "ao": "TANPA NAMA", "progres": "TETAP"}, {"no": "144", "norek": "551052001821", "nama": "MISWANTO", "plafond": 5000000, "outstanding": 5000000, "jatuhTempo": "26-09-2025", "ao": "DIMAS RIZKI PUTRA SULISTIO", "progres": "BERUBAH"}, {"no": "145", "norek": "551052000965", "nama": "MOFAN", "plafond": 15000000, "outstanding": 15000000, "jatuhTempo": "25-12-2019", "ao": "DIMAS RIZKI PUTRA SULISTIO", "progres": "TETAP"}, {"no": "146", "norek": "541052002477", "nama": "MOHAMMAD FENGKI HUSAIN", "plafond": 15000000, "outstanding": 10625000, "jatuhTempo": "13-12-2024", "ao": "FINA MILATUL AZKA", "progres": "TETAP"}, {"no": "147", "norek": "551052001901", "nama": "MUALIMIN", "plafond": 5000000, "outstanding": 5000000, "jatuhTempo": "13-05-2026", "ao": "FINA MILATUL AZKA", "progres": "BERUBAH"}, {"no": "148", "norek": "541052002945", "nama": "MUCHDORI", "plafond": 15000000, "outstanding": 7300000, "jatuhTempo": "21-02-2027", "ao": "DIMAS RIZKI PUTRA SULISTIO", "progres": "TETAP"}, {"no": "149", "norek": "551052001923", "nama": "MUFATEHATI", "plafond": 28000000, "outstanding": 28000000, "jatuhTempo": "05-08-2026", "ao": "TANPA NAMA", "progres": "BERUBAH"}, {"no": "150", "norek": "541052002920", "nama": "MUHAMAD FAKHRUROZI", "plafond": 15000000, "outstanding": 8860886, "jatuhTempo": "22-07-2027", "ao": "DIMAS RIZKI PUTRA SULISTIO", "progres": "TETAP"}, {"no": "151", "norek": "541052002751", "nama": "MUHAMMAD NAJIB NASRULLAH", "plafond": 40000000, "outstanding": 26546552, "jatuhTempo": "28-03-2027", "ao": "DIMAS RIZKI PUTRA SULISTIO", "progres": "TETAP"}, {"no": "152", "norek": "543052000038", "nama": "MUHAMMAD ROZIKIN", "plafond": 25000000, "outstanding": 19606551, "jatuhTempo": "05-07-2029", "ao": "DIMAS RIZKI PUTRA SULISTIO", "progres": "TETAP"}, {"no": "153", "norek": "541052003086", "nama": "MUHAMMAD YASIR MAFTUKH", "plafond": 4000000, "outstanding": 3124616, "jatuhTempo": "08-01-2027", "ao": "DIMAS RIZKI PUTRA SULISTIO", "progres": "TETAP"}, {"no": "154", "norek": "541052002524", "nama": "MUHLASIN", "plafond": 30000000, "outstanding": 16666672, "jatuhTempo": "09-03-2026", "ao": "DIMAS RIZKI PUTRA SULISTIO", "progres": "TETAP"}, {"no": "155", "norek": "551052001890", "nama": "MUHLISIN", "plafond": 4000000, "outstanding": 2000000, "jatuhTempo": "09-04-2026", "ao": "DIMAS RIZKI PUTRA SULISTIO", "progres": "TETAP"}, {"no": "156", "norek": "551052001817", "nama": "MUHSININ", "plafond": 7000000, "outstanding": 7000000, "jatuhTempo": "21-09-2025", "ao": "DIMAS RIZKI PUTRA SULISTIO", "progres": "BERUBAH"}, {"no": "157", "norek": "541052002680", "nama": "MUJIATI", "plafond": 20000000, "outstanding": 17069064, "jatuhTempo": "08-12-2026", "ao": "DIMAS RIZKI PUTRA SULISTIO", "progres": "TETAP"}, {"no": "158", "norek": "541052002754", "nama": "MUKHAYATI", "plafond": 50000000, "outstanding": 33183181, "jatuhTempo": "03-04-2027", "ao": "DIMAS RIZKI PUTRA SULISTIO", "progres": "TETAP"}, {"no": "159", "norek": "111052000016", "nama": "MUKHOFIFAH", "plafond": 860000000, "outstanding": 200075945, "jatuhTempo": "26-02-2020", "ao": "DIMAS RIZKI PUTRA SULISTIO", "progres": "TETAP"}, {"no": "160", "norek": "541052002983", "nama": "MUKHSININ", "plafond": 5000000, "outstanding": 3065837, "jatuhTempo": "29-04-2027", "ao": "DIMAS RIZKI PUTRA SULISTIO", "progres": "TETAP"}, {"no": "161", "norek": "541052002748", "nama": "MUKHSININ", "plafond": 30000000, "outstanding": 12918927, "jatuhTempo": "26-03-2027", "ao": "DIMAS RIZKI PUTRA SULISTIO", "progres": "TETAP"}, {"no": "162", "norek": "541052003000", "nama": "MUKMIN", "plafond": 10000000, "outstanding": 6924997, "jatuhTempo": "11-06-2027", "ao": "DIMAS RIZKI PUTRA SULISTIO", "progres": "TETAP"}, {"no": "163", "norek": "541052003102", "nama": "MULYONO", "plafond": 5000000, "outstanding": 4715334, "jatuhTempo": "11-02-2028", "ao": "TANPA NAMA", "progres": "TETAP"}, {"no": "164", "norek": "551052001549", "nama": "MUSLIKHAH", "plafond": 25000000, "outstanding": 9000000, "jatuhTempo": "10-09-2023", "ao": "DIMAS RIZKI PUTRA SULISTIO", "progres": "TETAP"}, {"no": "165", "norek": "541052002939", "nama": "MUSROKHAH", "plafond": 10000000, "outstanding": 4866662, "jatuhTempo": "17-02-2027", "ao": "DIMAS RIZKI PUTRA SULISTIO", "progres": "TETAP"}, {"no": "166", "norek": "541052002911", "nama": "MUSTOFIYAH", "plafond": 40000000, "outstanding": 26546552, "jatuhTempo": "24-12-2027", "ao": "DIMAS RIZKI PUTRA SULISTIO", "progres": "TETAP"}, {"no": "167", "norek": "541052003037", "nama": "MUZDALIFAH", "plafond": 25000000, "outstanding": 20789653, "jatuhTempo": "22-02-2028", "ao": "DIMAS RIZKI PUTRA SULISTIO", "progres": "TETAP"}, {"no": "168", "norek": "551052001768", "nama": "NARDI", "plafond": 100000000, "outstanding": 51250000, "jatuhTempo": "10-06-2025", "ao": "DIMAS RIZKI PUTRA SULISTIO", "progres": "BERUBAH"}, {"no": "169", "norek": "551052000525", "nama": "NASIRUN", "plafond": 150000000, "outstanding": 150000000, "jatuhTempo": "26-06-2016", "ao": "FINA MILATUL AZKA", "progres": "TETAP"}, {"no": "170", "norek": "551052001044", "nama": "NASOHA", "plafond": 8500000, "outstanding": 8500000, "jatuhTempo": "15-05-2020", "ao": "DIMAS RIZKI PUTRA SULISTIO", "progres": "TETAP"}, {"no": "171", "norek": "551052001857", "nama": "NIKEN INDHIHASTUTI", "plafond": 3500000, "outstanding": 3500000, "jatuhTempo": "25-12-2025", "ao": "DIMAS RIZKI PUTRA SULISTIO", "progres": "BERUBAH"}, {"no": "172", "norek": "541052002769", "nama": "NIKMATUL AINIYAH", "plafond": 15000000, "outstanding": 6931862, "jatuhTempo": "16-05-2027", "ao": "DIMAS RIZKI PUTRA SULISTIO", "progres": "TETAP"}, {"no": "173", "norek": "541052002988", "nama": "NIRAWATI", "plafond": 5000000, "outstanding": 2766443, "jatuhTempo": "19-11-2026", "ao": "DIMAS RIZKI PUTRA SULISTIO", "progres": "BERUBAH"}, {"no": "174", "norek": "541052003013", "nama": "NOVA HERU PRASETYA", "plafond": 6000000, "outstanding": 2982460, "jatuhTempo": "23-12-2026", "ao": "DIMAS RIZKI PUTRA SULISTIO", "progres": "TETAP"}, {"no": "175", "norek": "551052001524", "nama": "NUR AINIYAH", "plafond": 6000000, "outstanding": 6000000, "jatuhTempo": "09-07-2023", "ao": "DIMAS RIZKI PUTRA SULISTIO", "progres": "TETAP"}, {"no": "176", "norek": "541052002434", "nama": "NUR HIDAYAH", "plafond": 25000000, "outstanding": 10416676, "jatuhTempo": "06-10-2025", "ao": "FINA MILATUL AZKA", "progres": "TETAP"}, {"no": "177", "norek": "541052002024", "nama": "NUR HIDAYATI", "plafond": 150000000, "outstanding": 129166665, "jatuhTempo": "02-09-2023", "ao": "DIMAS RIZKI PUTRA SULISTIO", "progres": "TETAP"}, {"no": "178", "norek": "541052003114", "nama": "NUR KHAFIDZIN", "plafond": 5000000, "outstanding": 4646795, "jatuhTempo": "17-03-2027", "ao": "TANPA NAMA", "progres": "TETAP"}, {"no": "179", "norek": "541052003031", "nama": "NUR KHALIMIN", "plafond": 7000000, "outstanding": 5114664, "jatuhTempo": "13-08-2027", "ao": "DIMAS RIZKI PUTRA SULISTIO", "progres": "TETAP"}, {"no": "180", "norek": "541052003092", "nama": "NUR KHAYATI", "plafond": 3500000, "outstanding": 3199533, "jatuhTempo": "21-07-2027", "ao": "DIMAS RIZKI PUTRA SULISTIO", "progres": "BERUBAH"}, {"no": "181", "norek": "541052001562", "nama": "NUR KHOYIN", "plafond": 5000000, "outstanding": 4722222, "jatuhTempo": "30-05-2020", "ao": "FINA MILATUL AZKA", "progres": "TETAP"}, {"no": "182", "norek": "541052002868", "nama": "NUR ROFIK", "plafond": 15000000, "outstanding": 12060000, "jatuhTempo": "11-10-2026", "ao": "DIMAS RIZKI PUTRA SULISTIO", "progres": "TETAP"}, {"no": "183", "norek": "541052002228", "nama": "NURHAYATI", "plafond": 70000000, "outstanding": 68055556, "jatuhTempo": "04-11-2024", "ao": "FINA MILATUL AZKA", "progres": "TETAP"}, {"no": "184", "norek": "541052002773", "nama": "NURKHOYIN", "plafond": 30000000, "outstanding": 26824326, "jatuhTempo": "17-05-2027", "ao": "DIMAS RIZKI PUTRA SULISTIO", "progres": "TETAP"}, {"no": "185", "norek": "541052002835", "nama": "NUROKHMAH", "plafond": 30000000, "outstanding": 16576583, "jatuhTempo": "12-08-2027", "ao": "DIMAS RIZKI PUTRA SULISTIO", "progres": "TETAP"}, {"no": "186", "norek": "541052003034", "nama": "NURYANTI", "plafond": 15000000, "outstanding": 10960000, "jatuhTempo": "21-08-2027", "ao": "DIMAS RIZKI PUTRA SULISTIO", "progres": "TETAP"}, {"no": "187", "norek": "551052001911", "nama": "NURYANTO", "plafond": 7000000, "outstanding": 6000000, "jatuhTempo": "15-06-2026", "ao": "FINA MILATUL AZKA", "progres": "BERUBAH"}, {"no": "188", "norek": "541052002994", "nama": "OKI SEPTIANI", "plafond": 10000000, "outstanding": 6131663, "jatuhTempo": "23-05-2027", "ao": "DIMAS RIZKI PUTRA SULISTIO", "progres": "BERUBAH"}, {"no": "189", "norek": "541052002243", "nama": "PARIKHIN", "plafond": 70000000, "outstanding": 58333336, "jatuhTempo": "20-12-2024", "ao": "DIMAS RIZKI PUTRA SULISTIO", "progres": "TETAP"}, {"no": "190", "norek": "541052003120", "nama": "PARSIKIN", "plafond": 50000000, "outstanding": 50000000, "jatuhTempo": "28-04-2028", "ao": "", "progres": ""}, {"no": "191", "norek": "541052003099", "nama": "PARYATI", "plafond": 5000000, "outstanding": 4570760, "jatuhTempo": "03-08-2027", "ao": "TANPA NAMA", "progres": "TETAP"}, {"no": "192", "norek": "541052002002", "nama": "PATAH", "plafond": 11000000, "outstanding": 11000000, "jatuhTempo": "22-07-2022", "ao": "FINA MILATUL AZKA", "progres": "TETAP"}, {"no": "193", "norek": "541052003083", "nama": "PAWITRI", "plafond": 28000000, "outstanding": 26282666, "jatuhTempo": "29-12-2027", "ao": "FINA MILATUL AZKA", "progres": "TETAP"}, {"no": "194", "norek": "541052003042", "nama": "PUJI PURWANTI", "plafond": 15000000, "outstanding": 9926537, "jatuhTempo": "02-03-2027", "ao": "DIMAS RIZKI PUTRA SULISTIO", "progres": "TETAP"}, {"no": "195", "norek": "541052003090", "nama": "PUJIONO", "plafond": 5000000, "outstanding": 4564001, "jatuhTempo": "19-01-2028", "ao": "DIMAS RIZKI PUTRA SULISTIO", "progres": "TETAP"}, {"no": "196", "norek": "551052001895", "nama": "PURWANTO", "plafond": 8000000, "outstanding": 6000000, "jatuhTempo": "20-04-2026", "ao": "FINA MILATUL AZKA", "progres": "BERUBAH"}, {"no": "197", "norek": "541052002923", "nama": "RAHARJO", "plafond": 7000000, "outstanding": 3097495, "jatuhTempo": "24-01-2027", "ao": "FINA MILATUL AZKA", "progres": "TETAP"}, {"no": "198", "norek": "541052001689", "nama": "RAHMAD EFENDI", "plafond": 6000000, "outstanding": 5000000, "jatuhTempo": "11-04-2020", "ao": "FINA MILATUL AZKA", "progres": "TETAP"}, {"no": "199", "norek": "551052001938", "nama": "RANI WIJAYANTI", "plafond": 15000000, "outstanding": 15000000, "jatuhTempo": "09-09-2026", "ao": "TANPA NAMA", "progres": "BERUBAH"}, {"no": "200", "norek": "541052003100", "nama": "RENI KURNIA HATI", "plafond": 2000000, "outstanding": 1712820, "jatuhTempo": "04-02-2027", "ao": "TANPA NAMA", "progres": "TETAP"}, {"no": "201", "norek": "541052003021", "nama": "RENI WIDIASTUTI", "plafond": 13000000, "outstanding": 9002497, "jatuhTempo": "04-07-2027", "ao": "DIMAS RIZKI PUTRA SULISTIO", "progres": "TETAP"}, {"no": "202", "norek": "541052002972", "nama": "REPIN", "plafond": 4000000, "outstanding": 2467950, "jatuhTempo": "20-03-2026", "ao": "DIMAS RIZKI PUTRA SULISTIO", "progres": "TETAP"}, {"no": "203", "norek": "541052002926", "nama": "REZA SAPUTRA ADI", "plafond": 8000000, "outstanding": 4576004, "jatuhTempo": "30-01-2027", "ao": "DIMAS RIZKI PUTRA SULISTIO", "progres": "BERUBAH"}, {"no": "204", "norek": "541052002825", "nama": "RIAN ADE PRATAMA", "plafond": 30000000, "outstanding": 15895000, "jatuhTempo": "01-08-2026", "ao": "FINA MILATUL AZKA", "progres": "BERUBAH"}, {"no": "205", "norek": "541052002831", "nama": "RIDWAN", "plafond": 20000000, "outstanding": 11051040, "jatuhTempo": "08-08-2027", "ao": "FINA MILATUL AZKA", "progres": "TETAP"}, {"no": "206", "norek": "551052001806", "nama": "RISA NUR RANI", "plafond": 12000000, "outstanding": 12000000, "jatuhTempo": "06-09-2025", "ao": "DIMAS RIZKI PUTRA SULISTIO", "progres": "TETAP"}, {"no": "207", "norek": "541052002943", "nama": "RISDIYANTO", "plafond": 15000000, "outstanding": 10727473, "jatuhTempo": "19-02-2028", "ao": "DIMAS RIZKI PUTRA SULISTIO", "progres": "TETAP"}, {"no": "208", "norek": "541052002916", "nama": "RISWANTO", "plafond": 50000000, "outstanding": 34487611, "jatuhTempo": "10-01-2028", "ao": "DIMAS RIZKI PUTRA SULISTIO", "progres": "TETAP"}, {"no": "209", "norek": "541052002890", "nama": "RIYA PURNAMASARI", "plafond": 50000000, "outstanding": 39013601, "jatuhTempo": "22-11-2028", "ao": "FINA MILATUL AZKA", "progres": "BERUBAH"}, {"no": "210", "norek": "541052002494", "nama": "RIYADEN", "plafond": 5000000, "outstanding": 4444444, "jatuhTempo": "16-07-2024", "ao": "DIMAS RIZKI PUTRA SULISTIO", "progres": "TETAP"}, {"no": "211", "norek": "541052002809", "nama": "RIYADI", "plafond": 10000000, "outstanding": 1564993, "jatuhTempo": "11-07-2026", "ao": "DIMAS RIZKI PUTRA SULISTIO", "progres": "BERUBAH"}, {"no": "212", "norek": "541052002992", "nama": "RIYANI INDAH HIDAYATI", "plafond": 10000000, "outstanding": 6131663, "jatuhTempo": "20-05-2027", "ao": "DIMAS RIZKI PUTRA SULISTIO", "progres": "TETAP"}, {"no": "213", "norek": "551052001903", "nama": "ROHANI", "plafond": 12000000, "outstanding": 12000000, "jatuhTempo": "17-05-2026", "ao": "DIMAS RIZKI PUTRA SULISTIO", "progres": "BERUBAH"}, {"no": "214", "norek": "541052003073", "nama": "ROHMAT", "plafond": 14000000, "outstanding": 11748335, "jatuhTempo": "27-11-2027", "ao": "DIMAS RIZKI PUTRA SULISTIO", "progres": "BERUBAH"}, {"no": "215", "norek": "551052001934", "nama": "ROKHADI", "plafond": 7000000, "outstanding": 7000000, "jatuhTempo": "03-09-2026", "ao": "TANPA NAMA", "progres": "BERUBAH"}, {"no": "216", "norek": "541052003097", "nama": "ROKHIM SLAMET", "plafond": 35000000, "outstanding": 32453525, "jatuhTempo": "02-02-2027", "ao": "TANPA NAMA", "progres": "BERUBAH"}, {"no": "217", "norek": "541052002971", "nama": "RONDI", "plafond": 15000000, "outstanding": 10461539, "jatuhTempo": "20-03-2026", "ao": "DIMAS RIZKI PUTRA SULISTIO", "progres": "TETAP"}, {"no": "218", "norek": "551052001809", "nama": "RONI FASLAH", "plafond": 50000000, "outstanding": 30000000, "jatuhTempo": "11-09-2025", "ao": "DIMAS RIZKI PUTRA SULISTIO", "progres": "BERUBAH"}, {"no": "219", "norek": "541052003040", "nama": "ROSIDIN", "plafond": 2000000, "outstanding": 728203, "jatuhTempo": "28-08-2026", "ao": "DIMAS RIZKI PUTRA SULISTIO", "progres": "BERUBAH"}, {"no": "220", "norek": "544052000706", "nama": "RUNI", "plafond": 1500000, "outstanding": 1125000, "jatuhTempo": "29-02-2020", "ao": "FINA MILATUL AZKA", "progres": "TETAP"}, {"no": "221", "norek": "541052001691", "nama": "RUSIDAH", "plafond": 40000000, "outstanding": 32222223, "jatuhTempo": "12-04-2022", "ao": "DIMAS RIZKI PUTRA SULISTIO", "progres": "TETAP"}, {"no": "222", "norek": "541052003023", "nama": "RUSNANDAR", "plafond": 6000000, "outstanding": 4155000, "jatuhTempo": "07-07-2027", "ao": "DIMAS RIZKI PUTRA SULISTIO", "progres": "TETAP"}, {"no": "223", "norek": "541052002789", "nama": "RUSNO", "plafond": 18000000, "outstanding": 8872974, "jatuhTempo": "13-06-2027", "ao": "DIMAS RIZKI PUTRA SULISTIO", "progres": "TETAP"}, {"no": "224", "norek": "541052003080", "nama": "RUSTIANAH", "plafond": 12000000, "outstanding": 8369230, "jatuhTempo": "19-12-2026", "ao": "DIMAS RIZKI PUTRA SULISTIO", "progres": "TETAP"}, {"no": "225", "norek": "551052000635", "nama": "SABARI", "plafond": 7000000, "outstanding": 7000000, "jatuhTempo": "24-11-2017", "ao": "DIMAS RIZKI PUTRA SULISTIO", "progres": "TETAP"}, {"no": "226", "norek": "541052002796", "nama": "SAIT", "plafond": 20000000, "outstanding": 11051040, "jatuhTempo": "24-06-2027", "ao": "DIMAS RIZKI PUTRA SULISTIO", "progres": "TETAP"}, {"no": "227", "norek": "541052003072", "nama": "SAMARI", "plafond": 7000000, "outstanding": 6040569, "jatuhTempo": "26-05-2027", "ao": "DIMAS RIZKI PUTRA SULISTIO", "progres": "TETAP"}, {"no": "228", "norek": "541052001104", "nama": "SAPTOWATI", "plafond": 7500000, "outstanding": 3333330, "jatuhTempo": "12-02-2019", "ao": "FINA MILATUL AZKA", "progres": "TETAP"}, {"no": "229", "norek": "541052002894", "nama": "SARMIDI", "plafond": 7000000, "outstanding": 3097495, "jatuhTempo": "03-12-2026", "ao": "DIMAS RIZKI PUTRA SULISTIO", "progres": "TETAP"}, {"no": "230", "norek": "541052000621", "nama": "SAYOMAH", "plafond": 8000000, "outstanding": 5333332, "jatuhTempo": "15-10-2016", "ao": "TANPA NAMA", "progres": "TETAP"}, {"no": "231", "norek": "541052003115", "nama": "SEPTI MULYANI", "plafond": 12000000, "outstanding": 12000000, "jatuhTempo": "09-04-2028", "ao": "", "progres": ""}, {"no": "232", "norek": "541052001990", "nama": "SETIARSO A.MA", "plafond": 210000000, "outstanding": 186666668, "jatuhTempo": "04-07-2023", "ao": "DIMAS RIZKI PUTRA SULISTIO", "progres": "TETAP"}, {"no": "233", "norek": "541052002944", "nama": "SIGIT SULISTYAWAN", "plafond": 6000000, "outstanding": 2920000, "jatuhTempo": "20-02-2027", "ao": "DIMAS RIZKI PUTRA SULISTIO", "progres": "TETAP"}, {"no": "234", "norek": "551052001904", "nama": "SITI CHUSNA MURHANJATI SYUHADA", "plafond": 10000000, "outstanding": 10000000, "jatuhTempo": "27-05-2026", "ao": "FINA MILATUL AZKA", "progres": "BERUBAH"}, {"no": "235", "norek": "551052000135", "nama": "SITI MISRINA", "plafond": 5000000, "outstanding": 2000000, "jatuhTempo": "20-02-2014", "ao": "FINA MILATUL AZKA", "progres": "TETAP"}, {"no": "236", "norek": "551052001920", "nama": "SITI MUASAROH", "plafond": 10000000, "outstanding": 10000000, "jatuhTempo": "27-07-2026", "ao": "DIMAS RIZKI PUTRA SULISTIO", "progres": "BERUBAH"}, {"no": "237", "norek": "541052002876", "nama": "SITI NURJANAH S.PD.I", "plafond": 20000000, "outstanding": 10659089, "jatuhTempo": "25-06-2027", "ao": "FINA MILATUL AZKA", "progres": "TETAP"}, {"no": "238", "norek": "541052003033", "nama": "SITI PURWANTI", "plafond": 16000000, "outstanding": 11690664, "jatuhTempo": "16-08-2027", "ao": "DIMAS RIZKI PUTRA SULISTIO", "progres": "TETAP"}, {"no": "239", "norek": "541052001586", "nama": "SITI RIWAYATI HJ", "plafond": 975000000, "outstanding": 758333336, "jatuhTempo": "04-01-2022", "ao": "TANPA NAMA", "progres": "TETAP"}, {"no": "240", "norek": "541052002886", "nama": "SITI RODHIYAH", "plafond": 40000000, "outstanding": 33283786, "jatuhTempo": "19-11-2027", "ao": "DIMAS RIZKI PUTRA SULISTIO", "progres": "TETAP"}, {"no": "241", "norek": "541052002531", "nama": "SITI ROMLAH", "plafond": 50000000, "outstanding": 26388887, "jatuhTempo": "15-03-2026", "ao": "DIMAS RIZKI PUTRA SULISTIO", "progres": "TETAP"}, {"no": "242", "norek": "541052002578", "nama": "SITI SOKHIKHAH", "plafond": 40000000, "outstanding": 2222226, "jatuhTempo": "28-06-2026", "ao": "FINA MILATUL AZKA", "progres": "TETAP"}, {"no": "243", "norek": "543052000013", "nama": "SITI YUMAROH", "plafond": 25000000, "outstanding": 18333328, "jatuhTempo": "13-11-2023", "ao": "FINA MILATUL AZKA", "progres": "TETAP"}, {"no": "244", "norek": "551052001756", "nama": "SLAMET", "plafond": 100000000, "outstanding": 100000000, "jatuhTempo": "20-05-2025", "ao": "FINA MILATUL AZKA", "progres": "BERUBAH"}, {"no": "245", "norek": "551052001180", "nama": "SLAMET RIYANTO", "plafond": 400000000, "outstanding": 400000000, "jatuhTempo": "30-11-2022", "ao": "DIMAS RIZKI PUTRA SULISTIO", "progres": "TETAP"}, {"no": "246", "norek": "551052001905", "nama": "SLAMET TOYIBAH", "plafond": 2000000, "outstanding": 2000000, "jatuhTempo": "27-05-2026", "ao": "DIMAS RIZKI PUTRA SULISTIO", "progres": "BERUBAH"}, {"no": "247", "norek": "551052001928", "nama": "SRI DATI", "plafond": 7000000, "outstanding": 5000000, "jatuhTempo": "18-08-2026", "ao": "TANPA NAMA", "progres": "BERUBAH"}, {"no": "248", "norek": "541052002962", "nama": "SRI HIDAYAWATI", "plafond": 30000000, "outstanding": 22918923, "jatuhTempo": "17-03-2028", "ao": "DIMAS RIZKI PUTRA SULISTIO", "progres": "TETAP"}, {"no": "249", "norek": "541052002756", "nama": "SRI SHOLATI", "plafond": 100000000, "outstanding": 79727897, "jatuhTempo": "04-04-2028", "ao": "DIMAS RIZKI PUTRA SULISTIO", "progres": "TETAP"}, {"no": "250", "norek": "541052003121", "nama": "SRI WACHYUNI", "plafond": 25000000, "outstanding": 25000000, "jatuhTempo": "29-04-2029", "ao": "", "progres": ""}, {"no": "251", "norek": "541052003062", "nama": "SUBANDRIYO", "plafond": 12000000, "outstanding": 9648000, "jatuhTempo": "20-10-2027", "ao": "DIMAS RIZKI PUTRA SULISTIO", "progres": "TETAP"}, {"no": "252", "norek": "541052002076", "nama": "SUBKHI", "plafond": 3500000, "outstanding": 1166664, "jatuhTempo": "01-12-2021", "ao": "FINA MILATUL AZKA", "progres": "TETAP"}, {"no": "253", "norek": "541052002454", "nama": "SUDIRO", "plafond": 52000000, "outstanding": 46222224, "jatuhTempo": "09-11-2025", "ao": "DIMAS RIZKI PUTRA SULISTIO", "progres": "TETAP"}, {"no": "254", "norek": "541052002931", "nama": "SUGIYO", "plafond": 19000000, "outstanding": 13588134, "jatuhTempo": "06-02-2028", "ao": "DIMAS RIZKI PUTRA SULISTIO", "progres": "TETAP"}, {"no": "255", "norek": "541052002270", "nama": "SUGIYONO", "plafond": 10500000, "outstanding": 6416662, "jatuhTempo": "23-02-2025", "ao": "DIMAS RIZKI PUTRA SULISTIO", "progres": "TETAP"}, {"no": "256", "norek": "551052000154", "nama": "SUJARNO", "plafond": 8000000, "outstanding": 8000000, "jatuhTempo": "11-03-2014", "ao": "DIMAS RIZKI PUTRA SULISTIO", "progres": "TETAP"}, {"no": "257", "norek": "541052003053", "nama": "SUKADRI", "plafond": 25000000, "outstanding": 19195831, "jatuhTempo": "23-09-2027", "ao": "DIMAS RIZKI PUTRA SULISTIO", "progres": "TETAP"}, {"no": "258", "norek": "541052002893", "nama": "SUKARDI", "plafond": 15000000, "outstanding": 5960000, "jatuhTempo": "02-12-2026", "ao": "DIMAS RIZKI PUTRA SULISTIO", "progres": "TETAP"}, {"no": "259", "norek": "541052003026", "nama": "SULASIH", "plafond": 12000000, "outstanding": 9214000, "jatuhTempo": "15-07-2027", "ao": "DIMAS RIZKI PUTRA SULISTIO", "progres": "TETAP"}, {"no": "260", "norek": "541052003030", "nama": "SULASTRI", "plafond": 2000000, "outstanding": 647728, "jatuhTempo": "01-06-2026", "ao": "DIMAS RIZKI PUTRA SULISTIO", "progres": "TETAP"}, {"no": "261", "norek": "541052002486", "nama": "SUMARNI", "plafond": 150000000, "outstanding": 150000000, "jatuhTempo": "28-12-2025", "ao": "FINA MILATUL AZKA", "progres": "TETAP"}, {"no": "262", "norek": "541052003059", "nama": "SUMARYAM", "plafond": 4000000, "outstanding": 1709090, "jatuhTempo": "08-08-2026", "ao": "FINA MILATUL AZKA", "progres": "TETAP"}, {"no": "263", "norek": "543052000039", "nama": "SUNARTI", "plafond": 25000000, "outstanding": 19606551, "jatuhTempo": "05-07-2029", "ao": "DIMAS RIZKI PUTRA SULISTIO", "progres": "TETAP"}, {"no": "264", "norek": "541052002669", "nama": "SUNARTO", "plafond": 100000000, "outstanding": 78734982, "jatuhTempo": "28-11-2026", "ao": "DIMAS RIZKI PUTRA SULISTIO", "progres": "TETAP"}, {"no": "265", "norek": "551052001918", "nama": "SUPANTO", "plafond": 4000000, "outstanding": 2000000, "jatuhTempo": "20-07-2026", "ao": "DIMAS RIZKI PUTRA SULISTIO", "progres": "BERUBAH"}, {"no": "266", "norek": "541052002942", "nama": "SUPARI", "plafond": 10000000, "outstanding": 4866662, "jatuhTempo": "18-02-2027", "ao": "DIMAS RIZKI PUTRA SULISTIO", "progres": "TETAP"}, {"no": "267", "norek": "541052002787", "nama": "SUPRAPTINI", "plafond": 10000000, "outstanding": 1053326, "jatuhTempo": "07-06-2026", "ao": "DIMAS RIZKI PUTRA SULISTIO", "progres": "TETAP"}, {"no": "268", "norek": "551052001939", "nama": "SUPRAYITNO", "plafond": 15000000, "outstanding": 15000000, "jatuhTempo": "13-09-2026", "ao": "TANPA NAMA", "progres": "BERUBAH"}, {"no": "269", "norek": "541052003036", "nama": "SUPRIANTO", "plafond": 2000000, "outstanding": 728203, "jatuhTempo": "22-08-2026", "ao": "DIMAS RIZKI PUTRA SULISTIO", "progres": "TETAP"}, {"no": "270", "norek": "551052000575", "nama": "SUPRIYANTO", "plafond": 300000000, "outstanding": 300000000, "jatuhTempo": "05-04-2017", "ao": "FINA MILATUL AZKA", "progres": "TETAP"}, {"no": "271", "norek": "541052003108", "nama": "SURAJI", "plafond": 29000000, "outstanding": 28188347, "jatuhTempo": "26-02-2029", "ao": "TANPA NAMA", "progres": "TETAP"}, {"no": "272", "norek": "541052003119", "nama": "SURATIN", "plafond": 4000000, "outstanding": 4000000, "jatuhTempo": "21-04-2027", "ao": "", "progres": ""}, {"no": "273", "norek": "541052003061", "nama": "SURATMI", "plafond": 4000000, "outstanding": 3215998, "jatuhTempo": "14-10-2027", "ao": "DIMAS RIZKI PUTRA SULISTIO", "progres": "TETAP"}, {"no": "274", "norek": "541052003063", "nama": "SURINI", "plafond": 5000000, "outstanding": 3570173, "jatuhTempo": "23-04-2027", "ao": "FINA MILATUL AZKA", "progres": "BERUBAH"}, {"no": "275", "norek": "541052003069", "nama": "SURIP", "plafond": 140000000, "outstanding": 127886636, "jatuhTempo": "11-11-2028", "ao": "DIMAS RIZKI PUTRA SULISTIO", "progres": "TETAP"}, {"no": "276", "norek": "541052000235", "nama": "SURIP SUTRESNO", "plafond": 6000000, "outstanding": 5000000, "jatuhTempo": "04-01-2016", "ao": "FINA MILATUL AZKA", "progres": "TETAP"}, {"no": "277", "norek": "541052002987", "nama": "SURONO", "plafond": 13000000, "outstanding": 9328901, "jatuhTempo": "14-11-2027", "ao": "DIMAS RIZKI PUTRA SULISTIO", "progres": "TETAP"}, {"no": "278", "norek": "541052001420", "nama": "SUROSO", "plafond": 70000000, "outstanding": 42777784, "jatuhTempo": "06-07-2021", "ao": "DIMAS RIZKI PUTRA SULISTIO", "progres": "TETAP"}, {"no": "279", "norek": "541052003070", "nama": "SUSANTO", "plafond": 5000000, "outstanding": 3084934, "jatuhTempo": "13-11-2026", "ao": "FINA MILATUL AZKA", "progres": "BERUBAH"}, {"no": "280", "norek": "541052001398", "nama": "SUSMIYATI", "plafond": 40000000, "outstanding": 28888890, "jatuhTempo": "02-06-2021", "ao": "FINA MILATUL AZKA", "progres": "TETAP"}, {"no": "281", "norek": "541052002913", "nama": "SUTIMAH", "plafond": 12000000, "outstanding": 5274559, "jatuhTempo": "03-07-2026", "ao": "DIMAS RIZKI PUTRA SULISTIO", "progres": "TETAP"}, {"no": "282", "norek": "551052001937", "nama": "SUUD", "plafond": 5000000, "outstanding": 5000000, "jatuhTempo": "09-09-2026", "ao": "TANPA NAMA", "progres": "BERUBAH"}, {"no": "283", "norek": "551052001034", "nama": "SUWANDI", "plafond": 4000000, "outstanding": 4000000, "jatuhTempo": "28-04-2020", "ao": "DIMAS RIZKI PUTRA SULISTIO", "progres": "TETAP"}, {"no": "284", "norek": "541052003109", "nama": "SUYANTI", "plafond": 20000000, "outstanding": 19442667, "jatuhTempo": "04-03-2028", "ao": "TANPA NAMA", "progres": "TETAP"}, {"no": "285", "norek": "541052003112", "nama": "SYAEFUDIN ZUHRI", "plafond": 5000000, "outstanding": 4646795, "jatuhTempo": "13-03-2027", "ao": "TANPA NAMA", "progres": "TETAP"}, {"no": "286", "norek": "541052002964", "nama": "SYAIR", "plafond": 20000000, "outstanding": 18642640, "jatuhTempo": "17-03-2028", "ao": "DIMAS RIZKI PUTRA SULISTIO", "progres": "TETAP"}, {"no": "287", "norek": "551052000573", "nama": "TAATI", "plafond": 2000000, "outstanding": 2000000, "jatuhTempo": "04-04-2017", "ao": "FINA MILATUL AZKA", "progres": "TETAP"}, {"no": "288", "norek": "541052003105", "nama": "TAHRONI", "plafond": 60000000, "outstanding": 58045044, "jatuhTempo": "18-02-2029", "ao": "TANPA NAMA", "progres": "TETAP"}, {"no": "289", "norek": "541052000548", "nama": "TARMAI", "plafond": 6000000, "outstanding": 5600000, "jatuhTempo": "30-12-2017", "ao": "TANPA NAMA", "progres": "TETAP"}, {"no": "290", "norek": "551052001932", "nama": "TARSONO", "plafond": 3000000, "outstanding": 3000000, "jatuhTempo": "04-09-2026", "ao": "TANPA NAMA", "progres": "BERUBAH"}, {"no": "291", "norek": "551052000416", "nama": "TEGUH MARYONO", "plafond": 1500000, "outstanding": 1500000, "jatuhTempo": "25-11-2015", "ao": "FINA MILATUL AZKA", "progres": "TETAP"}, {"no": "292", "norek": "541052003060", "nama": "TEZNA ERVIANA", "plafond": 7000000, "outstanding": 4998244, "jatuhTempo": "13-04-2027", "ao": "FINA MILATUL AZKA", "progres": "TETAP"}, {"no": "293", "norek": "541052001508", "nama": "TITI HARYANTI", "plafond": 100000000, "outstanding": 88888888, "jatuhTempo": "04-10-2021", "ao": "TANPA NAMA", "progres": "TETAP"}, {"no": "294", "norek": "541052001862", "nama": "TITIN SUWARNI", "plafond": 190000000, "outstanding": 126666664, "jatuhTempo": "29-10-2022", "ao": "DIMAS RIZKI PUTRA SULISTIO", "progres": "TETAP"}, {"no": "295", "norek": "541052003019", "nama": "TIWIK HANDINI", "plafond": 10000000, "outstanding": 4503207, "jatuhTempo": "01-07-2026", "ao": "DIMAS RIZKI PUTRA SULISTIO", "progres": "TETAP"}, {"no": "296", "norek": "551052001921", "nama": "TIYAS PRIYANTINI", "plafond": 150000000, "outstanding": 150000000, "jatuhTempo": "29-07-2026", "ao": "DIMAS RIZKI PUTRA SULISTIO", "progres": "BERUBAH"}, {"no": "297", "norek": "551052001935", "nama": "TOARI", "plafond": 2500000, "outstanding": 2500000, "jatuhTempo": "09-09-2026", "ao": "TANPA NAMA", "progres": "BERUBAH"}, {"no": "298", "norek": "541052003056", "nama": "TOHA", "plafond": 12000000, "outstanding": 6415383, "jatuhTempo": "06-10-2026", "ao": "DIMAS RIZKI PUTRA SULISTIO", "progres": "BERUBAH"}, {"no": "299", "norek": "541052002770", "nama": "TRI HADI WIBOWO", "plafond": 40000000, "outstanding": 17699995, "jatuhTempo": "16-05-2026", "ao": "FINA MILATUL AZKA", "progres": "TETAP"}, {"no": "300", "norek": "541052003111", "nama": "TRI KURNIASIH", "plafond": 135000000, "outstanding": 133394726, "jatuhTempo": "13-09-2029", "ao": "TANPA NAMA", "progres": "TETAP"}, {"no": "301", "norek": "541052002844", "nama": "TRI PUJI HASTUTI", "plafond": 60000000, "outstanding": 34880624, "jatuhTempo": "28-08-2027", "ao": "DIMAS RIZKI PUTRA SULISTIO", "progres": "TETAP"}, {"no": "302", "norek": "541052002874", "nama": "TURIPAH", "plafond": 6000000, "outstanding": 2107000, "jatuhTempo": "24-10-2026", "ao": "DIMAS RIZKI PUTRA SULISTIO", "progres": "BERUBAH"}, {"no": "303", "norek": "551052001718", "nama": "TURIPAH", "plafond": 12000000, "outstanding": 12000000, "jatuhTempo": "28-08-2025", "ao": "DIMAS RIZKI PUTRA SULISTIO", "progres": "TETAP"}, {"no": "304", "norek": "542052000031", "nama": "TURIS", "plafond": 10000000, "outstanding": 3511661, "jatuhTempo": "29-11-2026", "ao": "DIMAS RIZKI PUTRA SULISTIO", "progres": "BERUBAH"}, {"no": "305", "norek": "551052000729", "nama": "TURYANTO", "plafond": 3500000, "outstanding": 3500000, "jatuhTempo": "13-10-2018", "ao": "DIMAS RIZKI PUTRA SULISTIO", "progres": "TETAP"}, {"no": "306", "norek": "551052001919", "nama": "TUTUR INAYAH", "plafond": 5000000, "outstanding": 5000000, "jatuhTempo": "21-07-2026", "ao": "DIMAS RIZKI PUTRA SULISTIO", "progres": "BERUBAH"}, {"no": "307", "norek": "541052003096", "nama": "TUTUR TURAH", "plafond": 25000000, "outstanding": 23920046, "jatuhTempo": "29-01-2029", "ao": "DIMAS RIZKI PUTRA SULISTIO", "progres": "TETAP"}, {"no": "308", "norek": "551052001155", "nama": "UMAYATI", "plafond": 945000000, "outstanding": 945000000, "jatuhTempo": "30-06-2022", "ao": "FINA MILATUL AZKA", "progres": "TETAP"}, {"no": "309", "norek": "541052002951", "nama": "UMI YUNURROINI", "plafond": 20000000, "outstanding": 8790936, "jatuhTempo": "07-09-2026", "ao": "DIMAS RIZKI PUTRA SULISTIO", "progres": "TETAP"}, {"no": "310", "norek": "541052002948", "nama": "UMUL FADHILAH", "plafond": 8000000, "outstanding": 2564333, "jatuhTempo": "05-09-2026", "ao": "DIMAS RIZKI PUTRA SULISTIO", "progres": "BERUBAH"}, {"no": "311", "norek": "551052001924", "nama": "UNTUNG", "plafond": 5000000, "outstanding": 5000000, "jatuhTempo": "09-08-2026", "ao": "TANPA NAMA", "progres": "BERUBAH"}, {"no": "312", "norek": "541052003075", "nama": "UNTUNG PRAYITNO", "plafond": 5000000, "outstanding": 3136363, "jatuhTempo": "05-10-2026", "ao": "FINA MILATUL AZKA", "progres": "TETAP"}, {"no": "313", "norek": "541052002297", "nama": "UNTUNG SETYA BUDI", "plafond": 20000000, "outstanding": 7500005, "jatuhTempo": "21-04-2024", "ao": "DIMAS RIZKI PUTRA SULISTIO", "progres": "TETAP"}, {"no": "314", "norek": "541052001824", "nama": "USWATUN HASANAH", "plafond": 4000000, "outstanding": 222226, "jatuhTempo": "12-03-2021", "ao": "FINA MILATUL AZKA", "progres": "TETAP"}, {"no": "315", "norek": "542052000027", "nama": "VENY KHOIRUNISA", "plafond": 27000000, "outstanding": 11627028, "jatuhTempo": "16-11-2026", "ao": "FINA MILATUL AZKA", "progres": "TETAP"}, {"no": "316", "norek": "541052003078", "nama": "WAHIDATUN NISAK", "plafond": 10000000, "outstanding": 6974360, "jatuhTempo": "16-12-2026", "ao": "FINA MILATUL AZKA", "progres": "TETAP"}, {"no": "317", "norek": "551052000515", "nama": "WAHIDIN", "plafond": 5000000, "outstanding": 5000000, "jatuhTempo": "10-06-2016", "ao": "FINA MILATUL AZKA", "progres": "TETAP"}, {"no": "318", "norek": "541052002928", "nama": "WAHONO", "plafond": 2500000, "outstanding": 910259, "jatuhTempo": "06-02-2026", "ao": "DIMAS RIZKI PUTRA SULISTIO", "progres": "TETAP"}, {"no": "319", "norek": "541052003091", "nama": "WAHONO", "plafond": 30000000, "outstanding": 28704055, "jatuhTempo": "20-01-2029", "ao": "DIMAS RIZKI PUTRA SULISTIO", "progres": "TETAP"}, {"no": "320", "norek": "541052002950", "nama": "WAHYO", "plafond": 10000000, "outstanding": 8146196, "jatuhTempo": "06-09-2026", "ao": "DIMAS RIZKI PUTRA SULISTIO", "progres": "TETAP"}, {"no": "321", "norek": "541052000588", "nama": "WAHYUDIN", "plafond": 40000000, "outstanding": 24999997, "jatuhTempo": "10-09-2017", "ao": "TANPA NAMA", "progres": "TETAP"}, {"no": "322", "norek": "541052002846", "nama": "WAHYUNINGSIH", "plafond": 24000000, "outstanding": 4960000, "jatuhTempo": "30-08-2026", "ao": "DIMAS RIZKI PUTRA SULISTIO", "progres": "TETAP"}, {"no": "323", "norek": "541052002966", "nama": "WARIS", "plafond": 4000000, "outstanding": 1282167, "jatuhTempo": "18-09-2026", "ao": "DIMAS RIZKI PUTRA SULISTIO", "progres": "TETAP"}, {"no": "324", "norek": "541052003116", "nama": "WARIS", "plafond": 3500000, "outstanding": 3500000, "jatuhTempo": "13-04-2027", "ao": "", "progres": ""}, {"no": "325", "norek": "541052002978", "nama": "WARLINAH", "plafond": 10000000, "outstanding": 5719996, "jatuhTempo": "17-04-2027", "ao": "DIMAS RIZKI PUTRA SULISTIO", "progres": "TETAP"}, {"no": "326", "norek": "551052001839", "nama": "WASDURI", "plafond": 18000000, "outstanding": 18000000, "jatuhTempo": "22-11-2025", "ao": "DIMAS RIZKI PUTRA SULISTIO", "progres": "TETAP"}, {"no": "327", "norek": "541052002804", "nama": "WYNDA SAPUTRI", "plafond": 60000000, "outstanding": 31385128, "jatuhTempo": "04-07-2027", "ao": "FINA MILATUL AZKA", "progres": "TETAP"}, {"no": "328", "norek": "551052001018", "nama": "YAKUTI", "plafond": 20000000, "outstanding": 20000000, "jatuhTempo": "27-03-2020", "ao": "DIMAS RIZKI PUTRA SULISTIO", "progres": "TETAP"}, {"no": "329", "norek": "541052003079", "nama": "YANIK KHIKMATUL ROHMANIA", "plafond": 4500000, "outstanding": 3138461, "jatuhTempo": "16-12-2026", "ao": "FINA MILATUL AZKA", "progres": "TETAP"}, {"no": "330", "norek": "541052002456", "nama": "YESI RAHMAWATI", "plafond": 277000000, "outstanding": 272383333, "jatuhTempo": "17-11-2027", "ao": "DIMAS RIZKI PUTRA SULISTIO", "progres": "TETAP"}, {"no": "331", "norek": "551052001942", "nama": "YOSI ELIANI", "plafond": 12000000, "outstanding": 12000000, "jatuhTempo": "20-10-2026", "ao": "", "progres": ""}, {"no": "332", "norek": "551052001888", "nama": "YULIANIS", "plafond": 10000000, "outstanding": 10000000, "jatuhTempo": "22-03-2026", "ao": "DIMAS RIZKI PUTRA SULISTIO", "progres": "BERUBAH"}, {"no": "333", "norek": "551052001917", "nama": "YUNIKA DEWI PURNAMASARI", "plafond": 15000000, "outstanding": 7000000, "jatuhTempo": "14-07-2026", "ao": "DIMAS RIZKI PUTRA SULISTIO", "progres": "BERUBAH"}, {"no": "334", "norek": "551052001931", "nama": "ZAENAL ABIDIN", "plafond": 5000000, "outstanding": 5000000, "jatuhTempo": "27-08-2026", "ao": "TANPA NAMA", "progres": "BERUBAH"}, {"no": "335", "norek": "551052001787", "nama": "ZAENUDIN", "plafond": 40000000, "outstanding": 40000000, "jatuhTempo": "31-07-2025", "ao": "FINA MILATUL AZKA", "progres": "TETAP"}, {"no": "336", "norek": "544052000714", "nama": "ZAENUL MUSHOFFA", "plafond": 1500000, "outstanding": 750000, "jatuhTempo": "05-03-2020", "ao": "FINA MILATUL AZKA", "progres": "TETAP"}, {"no": "337", "norek": "541052002867", "nama": "ZAMRONI", "plafond": 25000000, "outstanding": 17243813, "jatuhTempo": "10-10-2027", "ao": "DIMAS RIZKI PUTRA SULISTIO", "progres": "TETAP"}];
+
+/* ════════════════════════════════════════════════════
+   STATE
+════════════════════════════════════════════════════ */
+const MONTHS_ID    = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
+const MONTHS_SHORT = ['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Agu','Sep','Okt','Nov','Des'];
+
+let filt = { bulanan:'semua', semua:'semua', janji:'semua' };
+let activeSubTab = 'bulanan';
+let firingId = null;
+
+// ─── Lunas state ──────────────────────────────────
+function getLunas() {
+  try {
+    const raw = JSON.parse(localStorage.getItem('kopena-lunas') || '{}');
+    const m = {};
+    for (const k in raw) m[k] = new Set(raw[k]);
+    return m;
+  } catch(e){ return {}; }
+}
+function saveLunas(m) {
+  const s = {};
+  for (const k in m) s[k] = Array.from(m[k]);
+  localStorage.setItem('kopena-lunas', JSON.stringify(s));
+}
+let lunasMap = getLunas();
+
+function periodKey(y,m){ return y+'-'+String(m).padStart(2,'0'); }
+function isLunas(norek,y,m){ const k=periodKey(y,m); return lunasMap[k]&&lunasMap[k].has(norek); }
+function toggleLunas(norek,y,m){
+  const k=periodKey(y,m);
+  if(!lunasMap[k]) lunasMap[k]=new Set();
+  if(lunasMap[k].has(norek)){ lunasMap[k].delete(norek); return false; }
+  lunasMap[k].add(norek); return true;
+}
+
+// ─── Janji state ──────────────────────────────────
+function getJanji(){ try{ return JSON.parse(localStorage.getItem('kopena-janji')||'[]'); }catch(e){ return []; } }
+function saveJanjiArr(a){ localStorage.setItem('kopena-janji',JSON.stringify(a)); }
+let janjiArr = getJanji();
+
+/* ════════════════════════════════════════════════════
+   UTILS
+════════════════════════════════════════════════════ */
+function fmtRp(n){ if(!n||isNaN(n)) return '—'; return 'Rp '+Number(n).toLocaleString('id-ID'); }
+function parseDate(s){
+  if(!s||s===''||s==='nan') return null;
+  const p=s.split('-'); if(p.length!==3) return null;
+  return new Date(+p[2],+p[1]-1,+p[0]);
+}
+function isValidDate(s){ return s&&/\d{2}-\d{2}-\d{4}/.test(s); }
+
+/* ════════════════════════════════════════════════════
+   CLOCK
+════════════════════════════════════════════════════ */
+function tick(){ document.getElementById('clock').textContent=new Date().toLocaleTimeString('id-ID'); }
+setInterval(tick,1000); tick();
+
+/* ════════════════════════════════════════════════════
+   SELECTORS
+════════════════════════════════════════════════════ */
+function initSelectors(){
+  const now=new Date(), cm=now.getMonth()+1, cy=now.getFullYear();
+  const years=[cy-1,cy,cy+1];
+  ['sel-month','sel-wmonth'].forEach(id=>{
+    document.getElementById(id).innerHTML=MONTHS_ID.map((n,i)=>
+      `<option value="${i+1}" ${i+1===cm?'selected':''}>${n}</option>`).join('');
+  });
+  ['sel-year','sel-wyear'].forEach(id=>{
+    document.getElementById(id).innerHTML=years.map(y=>
+      `<option value="${y}" ${y===cy?'selected':''}>${y}</option>`).join('');
+  });
+}
+
+/* ════════════════════════════════════════════════════
+   MAIN VIEW SWITCH
+════════════════════════════════════════════════════ */
+function switchView(v, el){
+  document.querySelectorAll('.nav-tab').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+  ['tracker','pengingat'].forEach(x=>
+    document.getElementById('view-'+x).classList.toggle('active', x===v));
+  if(v==='pengingat'){ renderJanji(); updateJanjiStats(); checkNotifBanner(); }
+  if(v==='tracker') renderBulanan();
+}
+
+/* ════════════════════════════════════════════════════
+   TRACKER – SUB TAB
+════════════════════════════════════════════════════ */
+function setSubTab(t, el){
+  activeSubTab = t;
+  el.closest('.nav').querySelectorAll('.nav-tab').forEach(x=>x.classList.remove('active'));
+  el.classList.add('active');
+  ['bulanan','mingguan','semua'].forEach(x=>
+    document.getElementById('sub-'+x).style.display = x===t?'':'none');
+  if(t==='bulanan') renderBulanan();
+  if(t==='mingguan') renderMingguan();
+  if(t==='semua') renderSemua();
+}
+
+function setFilt(ctx, mode, btn){
+  filt[ctx]=mode;
+  btn.closest('.toolbar,.nav').querySelectorAll('.fbtn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  if(ctx==='bulanan') renderBulanan();
+  if(ctx==='semua') renderSemua();
+  if(ctx==='janji') renderJanji();
+}
+
+/* ════════════════════════════════════════════════════
+   TRACKER – ROW BUILDER
+════════════════════════════════════════════════════ */
+function buildRow(r, y, m){
+  const lunas = isLunas(r.norek, y, m);
+  const dt = parseDate(r.jatuhTempo);
+  const past = dt && dt < new Date();
+  return `<div class="row ${lunas?'lunas':''}" id="row-${r.norek}-${y}-${m}">
+    <div class="no-c">${r.no}</div>
+    <div>
+      <div class="nama">${r.nama}</div>
+      <div class="norek">${r.norek}</div>
+    </div>
+    <div class="jt ${past&&!lunas?'past':''}">${isValidDate(r.jatuhTempo)?r.jatuhTempo:'—'}</div>
+    <div class="out">${fmtRp(r.outstanding)}</div>
+    <div class="status-ic">${lunas?'✅':'❌'}</div>
+    <div>
+      <button class="tbtn ${lunas?'lunas':'belum'}" onclick="doToggle('${r.norek}',${y},${m})">
+        ${lunas?'✅ Lunas':'Belum'}
+      </button>
+    </div>
+  </div>`;
+}
+
+function doToggle(norek, y, m){
+  const became = toggleLunas(norek, y, m);
+  saveLunas(lunasMap);
+  const rowEl = document.getElementById('row-'+norek+'-'+y+'-'+m);
+  if(rowEl){ const r=MEMBERS.find(x=>x.norek===norek); rowEl.outerHTML=buildRow(r,y,m); }
+  updateAllStats(y, m);
+  const nama = MEMBERS.find(x=>x.norek===norek)?.nama||norek;
+  toast(became?`✅ ${nama} — Lunas`:`↩ ${nama} — Dibatalkan`);
+}
+
+function updateAllStats(y, m){
+  if(activeSubTab==='bulanan') updateStatsBulanan(y, m);
+  if(activeSubTab==='mingguan') updateStatsMingguan(y, m);
+}
+
+/* ════════════════════════════════════════════════════
+   TRACKER – BULANAN
+════════════════════════════════════════════════════ */
+function renderBulanan(){
+  const m=+document.getElementById('sel-month').value;
+  const y=+document.getElementById('sel-year').value;
+  const q=document.getElementById('q-bulanan').value.toLowerCase();
+  let list=MEMBERS.filter(r=>{
+    if(q&&!r.nama.toLowerCase().includes(q)&&!r.norek.includes(q)) return false;
+    if(filt.bulanan==='lunas'&&!isLunas(r.norek,y,m)) return false;
+    if(filt.bulanan==='belum'&&isLunas(r.norek,y,m)) return false;
+    return true;
+  });
+  document.getElementById('body-bulanan').innerHTML=list.length
+    ? list.map(r=>buildRow(r,y,m)).join('')
+    : '<div class="empty">Tidak ada data.</div>';
+  updateStatsBulanan(y, m);
+}
+
+function updateStatsBulanan(y, m){
+  const total=MEMBERS.length;
+  const lunas=MEMBERS.filter(r=>isLunas(r.norek,y,m)).length;
+  const pct=Math.round(lunas/total*100);
+  document.getElementById('stats-bulanan').innerHTML=`
+    <div class="stat b"><div class="stat-num">${total}</div><div class="stat-lbl">Total Anggota</div></div>
+    <div class="stat g"><div class="stat-num">${lunas}</div><div class="stat-lbl">Sudah Bayar</div></div>
+    <div class="stat r"><div class="stat-num">${total-lunas}</div><div class="stat-lbl">Belum Bayar</div></div>
+    <div class="stat y"><div class="stat-num">${pct}%</div><div class="stat-lbl">Progress</div></div>`;
+  document.getElementById('prog-text').textContent=
+    `${MONTHS_ID[m-1]} ${y} — ${lunas} dari ${total} anggota sudah membayar`;
+  document.getElementById('prog-pct').textContent=pct+'%';
+  document.getElementById('prog-fill').style.width=pct+'%';
+}
+
+/* ════════════════════════════════════════════════════
+   TRACKER – MINGGUAN
+════════════════════════════════════════════════════ */
+function renderMingguan(){
+  const m=+document.getElementById('sel-wmonth').value;
+  const y=+document.getElementById('sel-wyear').value;
+  const q=document.getElementById('q-mingguan').value.toLowerCase();
+  const weeks={1:[],2:[],3:[],4:[],5:[]};
+  MEMBERS.forEach(r=>{
+    if(q&&!r.nama.toLowerCase().includes(q)&&!r.norek.includes(q)) return;
+    const dt=parseDate(r.jatuhTempo);
+    let w=5;
+    if(dt){ const d=dt.getDate(); w=d<=7?1:d<=14?2:d<=21?3:d<=28?4:5; }
+    weeks[w].push(r);
+  });
+  const labels={1:'Minggu 1 (Tgl 1–7)',2:'Minggu 2 (Tgl 8–14)',3:'Minggu 3 (Tgl 15–21)',4:'Minggu 4 (Tgl 22–28)',5:'Minggu 5+ (Tgl 29+)'};
+  let html='';
+  for(let w=1;w<=5;w++){
+    const list=weeks[w]; if(!list.length) continue;
+    const lc=list.filter(r=>isLunas(r.norek,y,m)).length;
+    html+=`<div class="week-section">
+      <div class="week-hdr">
+        <span>📅 ${labels[w]}</span>
+        <span class="ws">
+          <span style="color:var(--green)">✅ ${lc} lunas</span>
+          <span style="color:var(--red)">❌ ${list.length-lc} belum</span>
+        </span>
+      </div>
+      <div class="tbl-card" style="border-radius:0 0 var(--r) var(--r)">
+        <div class="tbl-head"><div>No</div><div>Nama Anggota</div><div>Jatuh Tempo</div><div>Outstanding</div><div>St.</div><div>Aksi</div></div>
+        <div>${list.map(r=>buildRow(r,y,m)).join('')}</div>
+      </div>
+    </div>`;
+  }
+  document.getElementById('week-sections').innerHTML=html||'<div class="empty">Tidak ada data.</div>';
+  updateStatsMingguan(y,m);
+}
+
+function updateStatsMingguan(y,m){
+  const total=MEMBERS.length, lunas=MEMBERS.filter(r=>isLunas(r.norek,y,m)).length;
+  document.getElementById('stats-mingguan').innerHTML=`
+    <div class="stat b"><div class="stat-num">${total}</div><div class="stat-lbl">Total</div></div>
+    <div class="stat g"><div class="stat-num">${lunas}</div><div class="stat-lbl">Sudah Bayar</div></div>
+    <div class="stat r"><div class="stat-num">${total-lunas}</div><div class="stat-lbl">Belum Bayar</div></div>
+    <div class="stat y"><div class="stat-num">${Math.round(lunas/total*100)}%</div><div class="stat-lbl">Progress</div></div>`;
+}
+
+/* ════════════════════════════════════════════════════
+   TRACKER – SEMUA
+════════════════════════════════════════════════════ */
+function renderSemua(){
+  const now=new Date(), y=now.getFullYear(), m=now.getMonth()+1;
+  const q=document.getElementById('q-semua').value.toLowerCase();
+  let list=MEMBERS.filter(r=>{
+    if(q&&!r.nama.toLowerCase().includes(q)&&!r.norek.includes(q)) return false;
+    if(filt.semua==='lunas'&&!isLunas(r.norek,y,m)) return false;
+    if(filt.semua==='belum'&&isLunas(r.norek,y,m)) return false;
+    return true;
+  });
+  document.getElementById('body-semua').innerHTML=list.length
+    ? list.map(r=>buildRow(r,y,m)).join('')
+    : '<div class="empty">Tidak ada data.</div>';
+}
+
+/* ════════════════════════════════════════════════════
+   PENGINGAT – FORM
+════════════════════════════════════════════════════ */
+function clearForm(){
+  ['f-nama','f-norek','f-tgl','f-jam','f-lokasi','f-ket','f-petugas'].forEach(id=>{
+    document.getElementById(id).value='';
+  });
+  document.getElementById('f-status').value='menunggu';
+  document.getElementById('f-rem').value='15';
+  document.getElementById('f-tgl').valueAsDate=new Date();
+}
+
+function saveJanji(){
+  const nama=document.getElementById('f-nama').value.trim();
+  const tgl=document.getElementById('f-tgl').value;
+  const jam=document.getElementById('f-jam').value;
+  if(!nama) return toast('⚠️ Nama nasabah wajib diisi');
+  if(!tgl)  return toast('⚠️ Tanggal janji wajib diisi');
+  if(!jam)  return toast('⚠️ Jam janji wajib diisi');
+  const r={
+    id: Date.now().toString(),
+    nama, tgl, jam,
+    norek:   document.getElementById('f-norek').value.trim(),
+    lokasi:  document.getElementById('f-lokasi').value.trim(),
+    status:  document.getElementById('f-status').value,
+    ket:     document.getElementById('f-ket').value.trim(),
+    remMin:  +document.getElementById('f-rem').value,
+    petugas: document.getElementById('f-petugas').value.trim(),
+    fired:   false,
+  };
+  janjiArr.unshift(r);
+  saveJanjiArr(janjiArr);
+  clearForm();
+  renderJanji();
+  updateJanjiStats();
+  toast('🎉 Janji berhasil disimpan');
+}
+
+/* ════════════════════════════════════════════════════
+   PENGINGAT – RENDER
+════════════════════════════════════════════════════ */
+const badgeClass={menunggu:'bm',selesai:'bs',batal:'bb',mendesak:'bd'};
+const badgeLabel={menunggu:'⏳ Menunggu',selesai:'✅ Selesai',batal:'❌ Batal',mendesak:'🔴 Mendesak'};
+
+function renderJanji(){
+  const q=document.getElementById('q-janji').value.toLowerCase();
+  let list=janjiArr
+    .filter(r=>{
+      if(filt.janji!=='semua'&&r.status!==filt.janji) return false;
+      if(q&&!r.nama.toLowerCase().includes(q)&&!(r.ket||'').toLowerCase().includes(q)) return false;
+      return true;
+    })
+    .sort((a,b)=>(a.tgl+a.jam).localeCompare(b.tgl+b.jam));
+
+  if(!list.length){
+    document.getElementById('janji-list').innerHTML='<div class="empty">Belum ada janji tersimpan.</div>';
+    return;
+  }
+  document.getElementById('janji-list').innerHTML=list.map(r=>{
+    const [y,m,d]=r.tgl.split('-');
+    const rem=r.remMin>=60?(r.remMin/60)+'j':r.remMin+'mnt';
+    return `<div class="rcard s-${r.status} ${r.fired&&r.status!=='selesai'?'firing':''}" id="jcard-${r.id}">
+      <div class="rcard-date">
+        <div class="rday">${d}</div>
+        <div class="rmon">${MONTHS_SHORT[+m-1]} ${y}</div>
+        <div class="rtime">${r.jam}</div>
+      </div>
+      <div class="rcard-body">
+        <div class="rcard-head">
+          <span class="rname">${r.nama}</span>
+          <span class="badge ${badgeClass[r.status]}">${badgeLabel[r.status]}</span>
+          ${r.norek?`<span style="font-size:10px;color:var(--text3);font-family:'JetBrains Mono',monospace">${r.norek}</span>`:''}
+        </div>
+        ${r.ket?`<div class="rdesc">${r.ket}</div>`:''}
+        <div class="rmeta">
+          ${r.lokasi?`<span>📍 ${r.lokasi}</span>`:''}
+          ${r.petugas?`<span>👤 ${r.petugas}</span>`:''}
+          <span>🔔 ${r.remMin?rem+' sebelum':'Tepat waktu'}</span>
+          ${r.fired?'<span style="color:var(--yellow)">🔔 Alarm sudah berbunyi</span>':''}
+        </div>
+      </div>
+      <div class="rcard-actions">
+        <select class="btn btn-secondary btn-sm" style="cursor:pointer"
+          onchange="changeStatus('${r.id}',this.value)">
+          <option value="menunggu" ${r.status==='menunggu'?'selected':''}>⏳ Menunggu</option>
+          <option value="mendesak" ${r.status==='mendesak'?'selected':''}>🔴 Mendesak</option>
+          <option value="selesai"  ${r.status==='selesai'?'selected':''}>✅ Selesai</option>
+          <option value="batal"    ${r.status==='batal'?'selected':''}>❌ Batal</option>
+        </select>
+        ${r.fired?`<button class="btn btn-secondary btn-sm" onclick="resetAlarm('${r.id}')">🔁 Reset</button>`:''}
+        <button class="btn btn-danger btn-sm" onclick="delJanji('${r.id}')">🗑</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function changeStatus(id, status){
+  const r=janjiArr.find(x=>x.id===id);
+  if(r){ r.status=status; saveJanjiArr(janjiArr); renderJanji(); updateJanjiStats(); }
+}
+function delJanji(id){
+  if(!confirm('Hapus janji ini?')) return;
+  janjiArr=janjiArr.filter(x=>x.id!==id);
+  saveJanjiArr(janjiArr); renderJanji(); updateJanjiStats();
+  toast('🗑 Janji dihapus');
+}
+function resetAlarm(id){
+  const r=janjiArr.find(x=>x.id===id);
+  if(r){ r.fired=false; saveJanjiArr(janjiArr); renderJanji(); toast('🔔 Alarm direset'); }
+}
+
+function updateJanjiStats(){
+  const total=janjiArr.length;
+  const menunggu=janjiArr.filter(r=>r.status==='menunggu'||r.status==='mendesak').length;
+  const selesai=janjiArr.filter(r=>r.status==='selesai').length;
+  const mendesak=janjiArr.filter(r=>r.status==='mendesak').length;
+  document.getElementById('stats-janji').innerHTML=`
+    <div class="stat b"><div class="stat-num">${total}</div><div class="stat-lbl">Total Janji</div></div>
+    <div class="stat y"><div class="stat-num">${menunggu}</div><div class="stat-lbl">Menunggu</div></div>
+    <div class="stat r"><div class="stat-num">${mendesak}</div><div class="stat-lbl">Mendesak</div></div>
+    <div class="stat g"><div class="stat-num">${selesai}</div><div class="stat-lbl">Selesai</div></div>`;
+}
+
+/* ════════════════════════════════════════════════════
+   ALARM SYSTEM
+════════════════════════════════════════════════════ */
+function checkAlarms(){
+  const now=new Date();
+  janjiArr.forEach(r=>{
+    if(r.status==='selesai'||r.status==='batal'||r.fired) return;
+    const janji=new Date(r.tgl+'T'+r.jam);
+    const remAt=new Date(janji.getTime()-r.remMin*60000);
+    const window1min=new Date(janji.getTime()+60000);
+    if(now>=remAt&&now<window1min){ fireAlarm(r); }
+  });
+}
+setInterval(checkAlarms,15000);
+checkAlarms();
+
+function fireAlarm(r){
+  r.fired=true; saveJanjiArr(janjiArr); firingId=r.id;
+  document.getElementById('alarm-info').innerHTML=
+    `<p style="font-size:16px;font-weight:700;color:var(--text);margin:6px 0">${r.nama}</p>
+     <p>${r.ket?r.ket.substring(0,100)+(r.ket.length>100?'…':''):''}</p>
+     <p style="margin-top:8px;font-size:11px;color:var(--text3)">📅 ${r.tgl} &nbsp;⏰ ${r.jam}${r.lokasi?' &nbsp;📍 '+r.lokasi:''}</p>`;
+  document.getElementById('alarm-modal').classList.add('show');
+  playBeep();
+  if(Notification.permission==='granted')
+    new Notification('🔔 Pengingat KOPENA', { body: `${r.nama} | ${r.jam}` });
+  renderJanji();
+}
+
+function playBeep(){
+  try{
+    const ctx=new(window.AudioContext||window.webkitAudioContext)();
+    [[880,0,.15],[1046,.2,.15],[880,.4,.15],[1046,.6,.3],[880,1,.15],[1046,1.2,.3]].forEach(([f,s,d])=>{
+      const o=ctx.createOscillator(), g=ctx.createGain();
+      o.connect(g); g.connect(ctx.destination);
+      o.frequency.value=f; o.type='sine';
+      g.gain.setValueAtTime(.4,ctx.currentTime+s);
+      g.gain.exponentialRampToValueAtTime(.001,ctx.currentTime+s+d);
+      o.start(ctx.currentTime+s); o.stop(ctx.currentTime+s+d+.05);
+    });
+  }catch(e){}
+}
+
+function dismissAlarm(){ document.getElementById('alarm-modal').classList.remove('show'); firingId=null; }
+function snoozeAlarm(){
+  if(!firingId) return;
+  const r=janjiArr.find(x=>x.id===firingId);
+  if(r){
+    r.fired=false;
+    const janji=new Date(r.tgl+'T'+r.jam);
+    r.remMin=Math.max(0,Math.round((janji-Date.now()-10*60000)/60000));
+    saveJanjiArr(janjiArr);
+  }
+  dismissAlarm(); toast('⏸ Alarm ditunda 10 menit');
+}
+
+/* ════════════════════════════════════════════════════
+   NOTIFIKASI
+════════════════════════════════════════════════════ */
+function checkNotifBanner(){
+  document.getElementById('notif-banner').style.display =
+    Notification.permission==='default' ? 'flex' : 'none';
+}
+function reqNotif(){
+  Notification.requestPermission().then(p=>{
+    if(p==='granted'){ document.getElementById('notif-banner').style.display='none'; toast('✅ Notifikasi aktif'); }
+  });
+}
+
+/* ════════════════════════════════════════════════════
+   TOAST
+════════════════════════════════════════════════════ */
+function toast(msg){
+  const t=document.getElementById('toast');
+  t.textContent=msg; t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),2600);
+}
+
+/* ════════════════════════════════════════════════════
+   INIT
+════════════════════════════════════════════════════ */
+initSelectors();
+renderBulanan();
+updateJanjiStats();
+document.getElementById('f-tgl').valueAsDate = new Date();
+</script>
+</body>
+</html>
